@@ -2,24 +2,37 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
+use App\Models\Service;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $admin = User::firstOrCreate(
+            ['email' => env('ADMIN_EMAIL', 'admin@agendamento.app')],
+            [
+                'name' => 'Administrador',
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'admin12345')),
+                'role' => UserRole::Admin,
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $services = [
+            ['name' => 'Corte de cabelo', 'description' => 'Corte tradicional', 'duration_minutes' => 30, 'price' => 40],
+            ['name' => 'Barba', 'description' => 'Aparar e desenhar a barba', 'duration_minutes' => 30, 'price' => 30],
+            ['name' => 'Corte + Barba', 'description' => 'Combo completo', 'duration_minutes' => 60, 'price' => 60],
+            ['name' => 'Coloração', 'description' => 'Coloração completa', 'duration_minutes' => 90, 'price' => 120],
+        ];
+
+        foreach ($services as $service) {
+            Service::firstOrCreate(
+                ['name' => $service['name']],
+                [...$service, 'created_by' => $admin->id]
+            );
+        }
     }
 }
