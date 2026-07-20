@@ -5,7 +5,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
 
 # ---- Runtime ----
-FROM php:8.3-cli
+FROM php:8.5-cli
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
