@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { myAppointments } from "@/lib/api/appointments";
-import { APPOINTMENT_STATUS_BADGE_VARIANT, APPOINTMENT_STATUS_LABEL, type Appointment } from "@/lib/types/appointments";
+import { APPOINTMENT_STATUS_BADGE_VARIANT, APPOINTMENT_STATUS_LABEL } from "@/lib/types/appointments";
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -17,13 +17,9 @@ function formatDateTime(iso: string) {
 }
 
 function MeusAgendamentosList() {
-  const [appointments, setAppointments] = useState<Appointment[] | null>(null);
+  const { data: appointments, isLoading } = useSWR("my-appointments", myAppointments);
 
-  useEffect(() => {
-    myAppointments().then(setAppointments);
-  }, []);
-
-  if (!appointments) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-16">
         <Spinner className="h-6 w-6 text-muted-foreground" />
@@ -31,7 +27,7 @@ function MeusAgendamentosList() {
     );
   }
 
-  if (appointments.length === 0) {
+  if (!appointments || appointments.length === 0) {
     return <p className="text-muted-foreground">Você ainda não tem agendamentos.</p>;
   }
 

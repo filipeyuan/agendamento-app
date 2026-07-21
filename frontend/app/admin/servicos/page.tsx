@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import useSWR from "swr";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
@@ -27,17 +28,15 @@ function formatPrice(price: number) {
 }
 
 function ServicosAdminPanel() {
-  const [services, setServices] = useState<Service[] | null>(null);
+  const {
+    data: services,
+    isLoading,
+    mutate: reloadServices,
+  } = useSWR("admin-services", listAdminServices);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  function loadServices() {
-    listAdminServices().then(setServices);
-  }
-
-  useEffect(loadServices, []);
 
   function startEdit(service: Service) {
     setEditingId(service.id);
@@ -73,7 +72,7 @@ function ServicosAdminPanel() {
         await createService(payload);
       }
       cancelEdit();
-      loadServices();
+      reloadServices();
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -83,13 +82,13 @@ function ServicosAdminPanel() {
 
   async function toggleActive(service: Service) {
     await updateService(service.id, { active: !service.active });
-    loadServices();
+    reloadServices();
   }
 
   async function handleDelete(service: Service) {
     if (!confirm(`Excluir o serviço "${service.name}"?`)) return;
     await deleteService(service.id);
-    loadServices();
+    reloadServices();
   }
 
   return (
@@ -162,7 +161,7 @@ function ServicosAdminPanel() {
       </Card>
 
       <div className="flex flex-col gap-3">
-        {!services && (
+        {isLoading && (
           <div className="flex justify-center py-16">
             <Spinner className="h-6 w-6 text-muted-foreground" />
           </div>

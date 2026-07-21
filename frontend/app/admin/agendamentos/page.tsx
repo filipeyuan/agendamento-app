@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Badge } from "@/components/ui/badge";
@@ -23,22 +24,23 @@ function formatDateTime(iso: string) {
 }
 
 function AgendamentosAdminPanel() {
-  const [appointments, setAppointments] = useState<Appointment[] | null>(null);
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<AppointmentStatus | "">("");
 
-  function loadAppointments() {
+  const {
+    data: appointments,
+    isLoading,
+    mutate: reloadAppointments,
+  } = useSWR(["admin-appointments", date, status], () =>
     adminAppointments({
       date: date || undefined,
       status: status || undefined,
-    }).then(setAppointments);
-  }
-
-  useEffect(loadAppointments, [date, status]);
+    })
+  );
 
   async function handleStatusChange(appointment: Appointment, newStatus: AppointmentStatus) {
     await updateAppointmentStatus(appointment.id, newStatus);
-    loadAppointments();
+    reloadAppointments();
   }
 
   return (
@@ -65,7 +67,7 @@ function AgendamentosAdminPanel() {
         </div>
       </div>
 
-      {!appointments && (
+      {isLoading && (
         <div className="flex justify-center py-16">
           <Spinner className="h-6 w-6 text-muted-foreground" />
         </div>

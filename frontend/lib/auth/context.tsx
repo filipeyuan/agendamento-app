@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
+import useSWR from "swr";
 
 import * as authApi from "@/lib/api/auth";
 import { clearToken, getToken, setToken } from "@/lib/auth/token";
@@ -22,27 +23,26 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function fetchCurrentUser(): Promise<User | null> {
+  if (!getToken()) return null;
+
+  try {
+    return await authApi.me();
+  } catch {
+    clearToken();
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!getToken()) {
-      setIsLoading(false);
-      return;
-    }
-
-    authApi
-      .me()
-      .then(setUser)
-      .catch(() => clearToken())
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data: user, isLoading, mutate } = useSWR("auth-user", fetchCurrentUser, {
+    revalidateOnFocus: false,
+  });
 
   async function login(email: string, password: string) {
     const { user, token } = await authApi.login({ email, password });
     setToken(token);
-    setUser(user);
+    await mutate(user, false);
     return user;
   }
 
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }) {
     const { user, token } = await authApi.register(payload);
     setToken(token);
-    setUser(user);
+    await mutate(user, false);
     return user;
   }
 
@@ -64,12 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authApi.logout();
     } finally {
       clearToken();
-      setUser(null);
+      await mutate(null, false);
     }
   }
 
   return (
-    <AuthContext value={{ user, isLoading, login, register, logout }}>
+    <AuthContext value={{ user: user ?? null, isLoading, login, register, logout }}>
       {children}
     </AuthContext>
   );
