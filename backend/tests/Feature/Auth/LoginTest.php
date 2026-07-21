@@ -69,7 +69,7 @@ class LoginTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/me');
 
         $response->assertOk();
-        $response->assertJsonPath('id', $user->id);
+        $response->assertJsonPath('data.id', $user->id);
     }
 
     #[Test]

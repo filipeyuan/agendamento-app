@@ -6,6 +6,10 @@ interface AuthResponse {
   token: string;
 }
 
+interface ApiResource<T> {
+  data: T;
+}
+
 export function register(payload: {
   name: string;
   email: string;
@@ -30,6 +34,7 @@ export function logout() {
   return apiRequest<void>("/logout", { method: "POST" });
 }
 
-export function me() {
-  return apiRequest<User>("/me");
+export async function me() {
+  const { data } = await apiRequest<ApiResource<User>>("/me");
+  return data;
 }
