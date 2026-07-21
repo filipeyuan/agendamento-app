@@ -17,6 +17,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 
 - Frontend: [Vercel](https://agendamento-app-alpha.vercel.app)
 - Backend: [Render](https://agendamento-app-2muq.onrender.com) (banco Postgres no Neon)
+- Documentação da API: [/docs/api](https://agendamento-app-2muq.onrender.com/docs/api)
 
 **Login de demonstração** (admin): `admin@agendamento.app` / `admin12345`
 
@@ -33,7 +34,7 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 0** — Esqueleto implantado: health-check + auth básico (Sanctum), backend e frontend no ar
 - [x] **Fase 1** — MVP funcional: CRUD de serviços, agendamento com regra de conflito, dashboard admin
 - [x] **Fase 2** — Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
-- [ ] **Fase 3** — Documentação de API (OpenAPI/Swagger)
+- [x] **Fase 3** — Documentação de API (OpenAPI/Swagger)
 - [ ] **Fase 4** — Diferenciais: Google Calendar + assistente de agendamento via IA + calendário visual (FullCalendar)
 - [ ] **Fase 5** — Polimento final: identidade de produto (nome/copy reais), ilustrações e dashboard de analytics
 
