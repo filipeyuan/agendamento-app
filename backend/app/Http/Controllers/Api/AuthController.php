@@ -24,9 +24,6 @@ class AuthController extends Controller
             'phone' => $request->validated('phone'),
         ]);
 
-        // 'role' não é mass-assignable de propósito (evita um cliente se
-        // autopromover a admin); o banco aplica o default 'client', então
-        // recarregamos o model pra refletir esse valor na resposta.
         $user->refresh();
 
         $token = $user->createToken('api')->plainTextToken;
