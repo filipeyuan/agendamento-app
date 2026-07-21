@@ -8,6 +8,7 @@ API REST em Laravel para o sistema de agendamento. Autenticação via Laravel Sa
 - Laravel Sanctum (autenticação via Bearer Token)
 - SQLite em desenvolvimento local / PostgreSQL (Neon) em produção
 - PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12)
+- Documentação OpenAPI gerada automaticamente com [Scramble](https://scramble.dedoc.co)
 
 ## Como rodar localmente
 
@@ -36,7 +37,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 
 ```bash
 ./vendor/bin/pint --test       # PSR-12
-./vendor/bin/phpstan analyse   # análise estática (nível 8)
+./vendor/bin/phpstan analyse --memory-limit=1G   # análise estática (nível 8)
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
@@ -53,9 +54,13 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciais do admin criado pelo seeder |
 | `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário de funcionamento usado no cálculo de horários livres (default `09:00`–`18:00`) |
 
+## Documentação da API
+
+A documentação completa e interativa (OpenAPI 3.1, gerada a partir do próprio código — rotas, Form Requests e API Resources) fica em `/docs/api`. Localmente: `http://127.0.0.1:8000/docs/api`. O JSON da especificação fica em `/docs/api.json`.
+
 ## Endpoints
 
-Rotas autenticadas exigem o header `Authorization: Bearer {token}`.
+Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela abaixo é um resumo rápido — a referência completa está em `/docs/api`.
 
 ### Autenticação
 

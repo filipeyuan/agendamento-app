@@ -15,6 +15,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Cria um novo cliente e retorna um token de acesso.
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -34,6 +37,9 @@ class AuthController extends Controller
         ], 201);
     }
 
+    /**
+     * Autentica um usuário e retorna um token de acesso.
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where('email', $request->validated('email'))->first();
@@ -52,6 +58,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Revoga o token de acesso usado na requisição atual.
+     */
     public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -62,6 +71,9 @@ class AuthController extends Controller
         return response()->json(['message' => 'Sessão encerrada com sucesso.']);
     }
 
+    /**
+     * Retorna o usuário autenticado.
+     */
     public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());

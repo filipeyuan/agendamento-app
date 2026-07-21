@@ -17,6 +17,9 @@ use Illuminate\Http\Response;
 
 class ServiceController extends Controller
 {
+    /**
+     * Lista os serviços ativos.
+     */
     public function index(): AnonymousResourceCollection
     {
         $services = Service::query()->where('active', true)->latest()->get();
@@ -24,6 +27,9 @@ class ServiceController extends Controller
         return ServiceResource::collection($services);
     }
 
+    /**
+     * Lista todos os serviços, inclusive inativos.
+     */
     public function adminIndex(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Service::class);
@@ -33,6 +39,9 @@ class ServiceController extends Controller
         return ServiceResource::collection($services);
     }
 
+    /**
+     * Cria um serviço.
+     */
     public function store(StoreServiceRequest $request): JsonResponse
     {
         $this->authorize('create', Service::class);
@@ -48,6 +57,9 @@ class ServiceController extends Controller
         return ServiceResource::make($service)->response()->setStatusCode(201);
     }
 
+    /**
+     * Atualiza um serviço.
+     */
     public function update(UpdateServiceRequest $request, Service $service): ServiceResource
     {
         $this->authorize('update', $service);
@@ -57,6 +69,9 @@ class ServiceController extends Controller
         return ServiceResource::make($service);
     }
 
+    /**
+     * Remove um serviço.
+     */
     public function destroy(Request $request, Service $service): Response
     {
         $this->authorize('delete', $service);

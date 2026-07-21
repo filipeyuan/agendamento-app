@@ -14,6 +14,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
 use Carbon\Carbon;
+use Dedoc\Scramble\Attributes\Response as DocumentedResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -21,6 +22,9 @@ use Illuminate\Validation\Rule;
 
 class AppointmentController extends Controller
 {
+    /**
+     * Lista os agendamentos do usuário autenticado.
+     */
     public function mine(Request $request): AnonymousResourceCollection
     {
         $user = $request->user();
@@ -35,6 +39,9 @@ class AppointmentController extends Controller
         return AppointmentResource::collection($appointments);
     }
 
+    /**
+     * Lista todos os agendamentos, com filtros opcionais de data e status.
+     */
     public function adminIndex(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Appointment::class);
@@ -54,6 +61,9 @@ class AppointmentController extends Controller
         return AppointmentResource::collection($appointments);
     }
 
+    /**
+     * Lista os horários livres de um serviço em uma data.
+     */
     public function availableSlots(Request $request, Service $service, BookingService $bookingService): JsonResponse
     {
         $validated = $request->validate([
@@ -67,6 +77,15 @@ class AppointmentController extends Controller
         ]);
     }
 
+    /**
+     * Cria um agendamento.
+     */
+    #[DocumentedResponse(
+        status: 409,
+        description: 'Horário conflita com um agendamento já existente.',
+        type: 'array{message: string}',
+        examples: [['message' => 'Esse horário acabou de ser ocupado. Escolha outro horário.']],
+    )]
     public function store(StoreAppointmentRequest $request, BookingService $bookingService): JsonResponse
     {
         $user = $request->user();
@@ -85,6 +104,9 @@ class AppointmentController extends Controller
         return AppointmentResource::make($appointment->load('service'))->response()->setStatusCode(201);
     }
 
+    /**
+     * Atualiza o status de um agendamento (confirmar, cancelar ou concluir).
+     */
     public function updateStatus(UpdateAppointmentStatusRequest $request, Appointment $appointment): AppointmentResource
     {
         $this->authorize('updateStatus', $appointment);
