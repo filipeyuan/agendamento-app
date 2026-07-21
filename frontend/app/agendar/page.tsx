@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
+import { CalendarCheck, CalendarX } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
@@ -118,7 +119,10 @@ function AgendarForm() {
           <Label>Horário</Label>
           {isLoadingSlots && <p className="text-sm text-muted-foreground">Carregando horários...</p>}
           {!isLoadingSlots && slots?.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum horário livre nesta data.</p>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <CalendarX className="h-4 w-4" />
+              Nenhum horário livre nesta data.
+            </p>
           )}
           <div className="flex flex-wrap gap-2">
             {slots?.map((slot) => (
@@ -144,6 +148,7 @@ function AgendarForm() {
         </div>
 
         <Button disabled={!validSelectedSlot || isSubmitting} onClick={handleSubmit}>
+          <CalendarCheck className="h-4 w-4" />
           {isSubmitting ? "Agendando..." : "Confirmar agendamento"}
         </Button>
       </CardContent>

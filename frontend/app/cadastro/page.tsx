@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UserPlus } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ export default function CadastroPage() {
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="mt-2">
+              <UserPlus className="h-4 w-4" />
               {isSubmitting ? "Criando conta..." : "Criar conta"}
             </Button>
 

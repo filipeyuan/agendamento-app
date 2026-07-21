@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { Check, CheckCheck, ClipboardList, X } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -74,7 +76,11 @@ function AgendamentosAdminPanel() {
       )}
 
       {appointments?.length === 0 && (
-        <p className="text-muted-foreground">Nenhum agendamento encontrado.</p>
+        <EmptyState
+          icon={ClipboardList}
+          title="Nenhum agendamento encontrado"
+          description="Ajuste os filtros ou aguarde novos agendamentos chegarem."
+        />
       )}
 
       <div className="flex flex-col gap-3">
@@ -100,6 +106,7 @@ function AgendamentosAdminPanel() {
               {appointment.status === "pending" && (
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleStatusChange(appointment, "confirmed")}>
+                    <Check className="h-4 w-4" />
                     Confirmar
                   </Button>
                   <Button
@@ -107,6 +114,7 @@ function AgendamentosAdminPanel() {
                     size="sm"
                     onClick={() => handleStatusChange(appointment, "cancelled")}
                   >
+                    <X className="h-4 w-4" />
                     Cancelar
                   </Button>
                 </div>
@@ -115,6 +123,7 @@ function AgendamentosAdminPanel() {
               {appointment.status === "confirmed" && (
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleStatusChange(appointment, "completed")}>
+                    <CheckCheck className="h-4 w-4" />
                     Concluir
                   </Button>
                   <Button
@@ -122,6 +131,7 @@ function AgendamentosAdminPanel() {
                     size="sm"
                     onClick={() => handleStatusChange(appointment, "cancelled")}
                   >
+                    <X className="h-4 w-4" />
                     Cancelar
                   </Button>
                 </div>
