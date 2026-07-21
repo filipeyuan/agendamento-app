@@ -37,7 +37,10 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 ```bash
 ./vendor/bin/pint --test       # PSR-12
 ./vendor/bin/phpstan analyse   # análise estática (nível 8)
+php artisan test               # suíte de testes (PHPUnit)
 ```
+
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes) e atualização de status pelo admin.
 
 ## Variáveis de ambiente
 
