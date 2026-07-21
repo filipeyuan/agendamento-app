@@ -36,7 +36,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: oklch(0.16 0 0);
     --foreground: oklch(0.96 0 0);
 
@@ -68,6 +68,39 @@
     --input: oklch(0.3 0 0);
     --ring: oklch(0.7 0.16 260);
   }
+}
+
+:root[data-theme="dark"] {
+  --background: oklch(0.16 0 0);
+  --foreground: oklch(0.96 0 0);
+
+  --card: oklch(0.2 0 0);
+  --card-foreground: oklch(0.96 0 0);
+
+  --primary: oklch(0.7 0.16 260);
+  --primary-foreground: oklch(0.16 0 0);
+
+  --secondary: oklch(0.27 0 0);
+  --secondary-foreground: oklch(0.96 0 0);
+
+  --muted: oklch(0.27 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+
+  --accent: oklch(0.27 0 0);
+  --accent-foreground: oklch(0.96 0 0);
+
+  --destructive: oklch(0.65 0.22 27);
+  --destructive-foreground: oklch(0.16 0 0);
+
+  --success: oklch(0.65 0.15 150);
+  --success-foreground: oklch(0.16 0 0);
+
+  --warning: oklch(0.75 0.16 80);
+  --warning-foreground: oklch(0.16 0 0);
+
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --ring: oklch(0.7 0.16 260);
 }
 
 @theme inline {
@@ -114,4 +147,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
