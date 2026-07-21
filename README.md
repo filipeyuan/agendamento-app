@@ -1,5 +1,7 @@
 # Agendamento App
 
+![CI](https://github.com/filipeyuan/agendamento-app/actions/workflows/ci.yml/badge.svg)
+
 Sistema de agendamento online full stack — cliente escolhe serviço e horário, admin gerencia serviços e confirma/cancela agendamentos, com regra de conflito de horário.
 
 Projeto construído em fases, cada uma terminando com algo funcionando e implantado (não só código local).
@@ -30,7 +32,7 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 
 - [x] **Fase 0** — Esqueleto implantado: health-check + auth básico (Sanctum), backend e frontend no ar
 - [x] **Fase 1** — MVP funcional: CRUD de serviços, agendamento com regra de conflito, dashboard admin
-- [ ] **Fase 2** — Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
+- [x] **Fase 2** — Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
 - [ ] **Fase 3** — Documentação de API (OpenAPI/Swagger)
 - [ ] **Fase 4** — Diferenciais: Google Calendar + assistente de agendamento via IA + calendário visual (FullCalendar)
 - [ ] **Fase 5** — Polimento final: identidade de produto (nome/copy reais), ilustrações e dashboard de analytics
