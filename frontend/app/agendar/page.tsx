@@ -126,7 +126,7 @@ function AgendarForm() {
                 type="button"
                 onClick={() => setSelectedSlot(slot)}
                 className={cn(
-                  "rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent",
+                  "cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent",
                   selectedSlot === slot && "border-primary bg-primary text-primary-foreground hover:opacity-90"
                 )}
               >
