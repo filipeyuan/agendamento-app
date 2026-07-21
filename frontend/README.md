@@ -7,6 +7,7 @@ Frontend do sistema de agendamento, consumindo a API Laravel via REST.
 - Next.js 16 (App Router) + TypeScript
 - Tailwind CSS v4 (design tokens via variáveis CSS)
 - SWR (busca e revalidação de dados no client)
+- FullCalendar (calendário visual do painel admin)
 - Componentes com variantes via `class-variance-authority`
 
 ## Como rodar localmente
@@ -31,7 +32,7 @@ npm run build   # inclui checagem de tipos
 npm run test    # Jest + React Testing Library
 ```
 
-Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, ausência de horários livres), guarda de rota por autenticação/role e os helpers de data e formatação de erro.
+Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, ausência de horários livres), calendário admin (busca por intervalo, seleção de agendamento, atualização de status), guarda de rota por autenticação/role e os helpers de data e formatação de erro.
 
 ## Variáveis de ambiente
 
@@ -49,7 +50,7 @@ Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, aus�
 | `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre |
 | `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status |
 | `/admin/servicos` | admin | CRUD de serviços |
-| `/admin/agendamentos` | admin | Lista com filtros + confirmar/cancelar/concluir |
+| `/admin/agendamentos` | admin | Calendário (mês/semana/lista) com filtro de status + confirmar/cancelar/concluir |
 
 ## Estrutura
 

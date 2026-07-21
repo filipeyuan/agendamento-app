@@ -22,9 +22,16 @@ export async function myAppointments() {
   return data;
 }
 
-export async function adminAppointments(filters?: { date?: string; status?: AppointmentStatus }) {
+export async function adminAppointments(filters?: {
+  date?: string;
+  from?: string;
+  to?: string;
+  status?: AppointmentStatus;
+}) {
   const params = new URLSearchParams();
   if (filters?.date) params.set("date", filters.date);
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
   if (filters?.status) params.set("status", filters.status);
   const query = params.toString() ? `?${params.toString()}` : "";
 

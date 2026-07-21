@@ -87,4 +87,19 @@ class AppointmentStatusTest extends TestCase
         $response->assertOk();
         $response->assertJsonCount(1, 'data');
     }
+
+    #[Test]
+    public function admin_can_filter_appointments_by_date_range(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+        Appointment::factory()->create(['start_at' => '2026-08-09 23:00:00', 'end_at' => '2026-08-09 23:30:00']);
+        Appointment::factory()->create(['start_at' => '2026-08-10 10:00:00', 'end_at' => '2026-08-10 10:30:00']);
+        Appointment::factory()->create(['start_at' => '2026-08-16 09:00:00', 'end_at' => '2026-08-16 09:30:00']);
+
+        $response = $this->actingAs($admin)->getJson('/api/admin/appointments?from=2026-08-10&to=2026-08-16');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+    }
 }
