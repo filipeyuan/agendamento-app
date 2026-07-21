@@ -2,12 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import useSWR from "swr";
+import { PackageOpen, Pencil, Power, Trash2 } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -167,6 +169,14 @@ function ServicosAdminPanel() {
           </div>
         )}
 
+        {!isLoading && services?.length === 0 && (
+          <EmptyState
+            icon={PackageOpen}
+            title="Nenhum serviço cadastrado"
+            description="Crie o primeiro serviço usando o formulário ao lado."
+          />
+        )}
+
         {services?.map((service) => (
           <Card key={service.id}>
             <CardContent className="flex items-center justify-between gap-4 py-4">
@@ -184,12 +194,15 @@ function ServicosAdminPanel() {
 
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => startEdit(service)}>
+                  <Pencil className="h-4 w-4" />
                   Editar
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => toggleActive(service)}>
+                  <Power className="h-4 w-4" />
                   {service.active ? "Desativar" : "Ativar"}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDelete(service)}>
+                  <Trash2 className="h-4 w-4" />
                   Excluir
                 </Button>
               </div>

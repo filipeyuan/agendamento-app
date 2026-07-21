@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LogIn } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="mt-2">
+              <LogIn className="h-4 w-4" />
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
 

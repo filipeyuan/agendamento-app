@@ -1,10 +1,12 @@
 "use client";
 
 import useSWR from "swr";
+import { CalendarX2 } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { myAppointments } from "@/lib/api/appointments";
 import { APPOINTMENT_STATUS_BADGE_VARIANT, APPOINTMENT_STATUS_LABEL } from "@/lib/types/appointments";
@@ -28,7 +30,13 @@ function MeusAgendamentosList() {
   }
 
   if (!appointments || appointments.length === 0) {
-    return <p className="text-muted-foreground">Você ainda não tem agendamentos.</p>;
+    return (
+      <EmptyState
+        icon={CalendarX2}
+        title="Você ainda não tem agendamentos"
+        description="Escolha um serviço e marque um horário pra começar."
+      />
+    );
   }
 
   return (

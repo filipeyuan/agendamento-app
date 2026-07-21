@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { Navbar } from "@/components/layout/navbar.component";
 import { AuthProvider } from "@/lib/auth/context";
+import { THEME_INIT_SCRIPT } from "@/lib/utils/theme";
 
 import "./globals.css";
 
@@ -30,7 +31,11 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <Navbar />
