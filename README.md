@@ -6,19 +6,22 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 
 ## Stack
 
-- **Frontend:** Next.js (App Router) + TypeScript + Tailwind CSS — [`/frontend`](./frontend)
+- **Frontend:** Next.js (App Router) + TypeScript + Tailwind CSS + SWR — [`/frontend`](./frontend)
 - **Backend:** Laravel + Sanctum (API REST, autenticação via token) — [`/backend`](./backend)
-- **Banco:** SQLite em desenvolvimento, PostgreSQL em produção
+- **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12)
 
 ## Deploy
 
-- Frontend: Vercel — _link em breve_
-- Backend: Railway — _link em breve_
+- Frontend: [Vercel](https://agendamento-app-alpha.vercel.app)
+- Backend: [Render](https://agendamento-app-2muq.onrender.com) (banco Postgres no Neon)
+
+**Login de demonstração** (admin): `admin@agendamento.app` / `admin12345`
 
 ## Fases do projeto
 
 - [x] **Fase 0** — Esqueleto implantado: health-check + auth básico (Sanctum), backend e frontend no ar
-- [ ] **Fase 1** — MVP funcional: CRUD de serviços, agendamento com regra de conflito, dashboard admin
+- [x] **Fase 1** — MVP funcional: CRUD de serviços, agendamento com regra de conflito, dashboard admin
 - [ ] **Fase 2** — Docker (build real em produção) + testes automatizados + CI (GitHub Actions)
 - [ ] **Fase 3** — Documentação de API (OpenAPI/Swagger)
 - [ ] **Fase 4** — Diferenciais: integração com Google Calendar + assistente de agendamento via IA
