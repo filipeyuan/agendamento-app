@@ -17,15 +17,6 @@ class Service extends Model
     /** @use HasFactory<ServiceFactory> */
     use HasFactory;
 
-    protected function casts(): array
-    {
-        return [
-            'price' => 'decimal:2',
-            'active' => 'boolean',
-            'duration_minutes' => 'integer',
-        ];
-    }
-
     /**
      * @return BelongsTo<User, $this>
      */
@@ -40,5 +31,14 @@ class Service extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'active' => 'boolean',
+            'duration_minutes' => 'integer',
+        ];
     }
 }

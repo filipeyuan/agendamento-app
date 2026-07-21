@@ -28,16 +28,6 @@ class Appointment extends Model
     /** @use HasFactory<AppointmentFactory> */
     use HasFactory;
 
-    protected function casts(): array
-    {
-        return [
-            'start_at' => 'datetime',
-            'end_at' => 'datetime',
-            'status' => AppointmentStatus::class,
-            'source' => AppointmentSource::class,
-        ];
-    }
-
     /**
      * @return BelongsTo<User, $this>
      */
@@ -84,5 +74,15 @@ class Appointment extends Model
         return $query->active()
             ->where('start_at', '<', $endAt)
             ->where('end_at', '>', $startAt);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'start_at' => 'datetime',
+            'end_at' => 'datetime',
+            'status' => AppointmentStatus::class,
+            'source' => AppointmentSource::class,
+        ];
     }
 }
