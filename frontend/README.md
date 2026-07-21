@@ -28,7 +28,10 @@ Na raiz do monorepo, `docker-compose up` sobe frontend + backend + Postgres junt
 ```bash
 npm run lint
 npm run build   # inclui checagem de tipos
+npm run test    # Jest + React Testing Library
 ```
+
+Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, ausência de horários livres), guarda de rota por autenticação/role e os helpers de data e formatação de erro.
 
 ## Variáveis de ambiente
 
