@@ -19,6 +19,10 @@ npm run dev
 
 Abre em `http://localhost:3000`. Requer o backend rodando (veja `../backend/README.md`).
 
+### Alternativa: Docker
+
+Na raiz do monorepo, `docker-compose up` sobe frontend + backend + Postgres juntos (veja `../README.md`). O `Dockerfile.dev` aqui é só pra isso — não é usado pela Vercel, que builda direto do código.
+
 ## Qualidade de código
 
 ```bash

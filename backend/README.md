@@ -22,6 +22,16 @@ php artisan serve
 
 A API sobe em `http://127.0.0.1:8000`. O seeder cria um admin (`admin@agendamento.app` / `admin12345`, configurável via `ADMIN_EMAIL`/`ADMIN_PASSWORD`) e alguns serviços de exemplo.
 
+### Alternativa: Docker (sem precisar de PHP/Postgres instalados)
+
+Na raiz do monorepo:
+
+```bash
+docker-compose up
+```
+
+O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount). O `backend/Dockerfile` (sem `.dev`) é o de produção, usado pelo Render — não roda com `docker-compose`.
+
 ## Qualidade de código
 
 ```bash
