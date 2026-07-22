@@ -112,7 +112,7 @@ function AgendamentosAdminPanel() {
     () =>
       (appointments ?? []).map((appointment) => ({
         id: String(appointment.id),
-        title: `${appointment.service.name} · ${appointment.client?.name ?? ""}`,
+        title: appointment.service.name,
         start: appointment.start_at,
         end: appointment.end_at,
         backgroundColor: STATUS_COLOR[appointment.status].background,
