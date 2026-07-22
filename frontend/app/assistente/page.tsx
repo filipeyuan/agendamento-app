@@ -95,7 +95,7 @@ function AssistantChat() {
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <textarea
             className="h-10 flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="Ex.: quero cortar o cabelo amanhã de manhã"
+            placeholder="Escreva sua mensagem..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
