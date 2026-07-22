@@ -106,11 +106,11 @@ function AgendarForm() {
 
         <div>
           <Label>Data</Label>
-          <div className="rounded-md border border-border p-2">
+          <div className="fc-compact mx-auto max-w-72 rounded-md border border-border p-2">
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
-              headerToolbar={{ left: "prev,next today", center: "title", right: "" }}
+              headerToolbar={{ left: "prev", center: "title", right: "next" }}
               locale={ptBrLocale}
               height="auto"
               validRange={{ start: todayIsoDate() }}

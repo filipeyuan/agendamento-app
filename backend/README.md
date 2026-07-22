@@ -1,4 +1,4 @@
-# Backend — Agendamento App (API Laravel)
+# Backend — Zelo (API Laravel)
 
 API REST em Laravel para o sistema de agendamento. Autenticação via Laravel Sanctum (tokens, não cookies), pensada pra ser consumida por um frontend em outro domínio (Next.js na Vercel).
 

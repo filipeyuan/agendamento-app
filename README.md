@@ -1,8 +1,8 @@
-# Agendamento App
+# Zelo
 
 ![CI](https://github.com/filipeyuan/agendamento-app/actions/workflows/ci.yml/badge.svg)
 
-Sistema de agendamento online full stack — cliente escolhe serviço e horário, admin gerencia serviços e confirma/cancela agendamentos, com regra de conflito de horário.
+Sistema de agendamento online full stack para negócios de serviço — cliente escolhe serviço e horário, admin gerencia serviços e confirma/cancela agendamentos, com regra de conflito de horário.
 
 Projeto construído em fases, cada uma terminando com algo funcionando e implantado (não só código local).
 
@@ -36,6 +36,6 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 2** — Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
 - [x] **Fase 3** — Documentação de API (OpenAPI/Swagger)
 - [ ] **Fase 4** — Diferenciais: ~~calendário visual (FullCalendar)~~ + Google Calendar + assistente de agendamento via IA
-- [ ] **Fase 5** — Polimento final: identidade de produto (nome/copy reais), ilustrações e dashboard de analytics
+- [ ] **Fase 5** — Polimento final: ~~identidade de produto (nome/copy reais)~~ + ilustrações e dashboard de analytics
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).
