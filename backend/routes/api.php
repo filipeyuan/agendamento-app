@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\ScheduleBlockController;
@@ -28,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments/mine', [AppointmentController::class, 'mine']);
+
+    Route::post('/assistant/chat', [AssistantController::class, 'chat']);
 
     Route::prefix('admin')->group(function () {
         Route::get('/services', [ServiceController::class, 'adminIndex']);

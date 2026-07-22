@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, e horário de atendimento/bloqueios de agenda.
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, e o assistente de agendamento via IA (com a API do Gemini simulada nos testes).
 
 ## Variáveis de ambiente
 
@@ -53,6 +53,8 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 | `DB_URL` | Em produção, connection string completa do Postgres (ex: Neon) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciais do admin criado pelo seeder |
 | `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário padrão usado só na primeira vez que o seeder cria o horário de atendimento (depois disso, o horário fica no banco e é editado por `/api/admin/business-hours`) |
+| `GEMINI_API_KEY` | Chave da API do Gemini (gratuita em [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)), usada pelo assistente de agendamento via IA. Sem ela, o assistente responde avisando que ainda não foi configurado |
+| `GEMINI_MODEL` | Modelo do Gemini usado pelo assistente (default `gemini-flash-lite-latest`) |
 
 ## Documentação da API
 
@@ -101,6 +103,14 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | GET | `/api/admin/schedule-blocks?from=&to=` | admin | Lista os bloqueios de horário, com filtro opcional de período |
 | POST | `/api/admin/schedule-blocks` | admin | Cria um bloqueio (dia inteiro ou um intervalo específico) |
 | DELETE | `/api/admin/schedule-blocks/{scheduleBlock}` | admin | Remove um bloqueio |
+
+### Assistente de agendamento via IA
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| POST | `/api/assistant/chat` | sim | Envia o histórico da conversa e recebe a resposta do assistente |
+
+O assistente usa a API do Gemini com function calling: ele mesmo decide quando consultar os serviços ativos, checar horários livres e criar o agendamento (`App\Services\AssistantService`), sempre a partir de dados reais do banco, nunca inventados.
 
 ## Regra de conflito de horário
 
