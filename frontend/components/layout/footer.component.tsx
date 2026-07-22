@@ -1,5 +1,6 @@
-import Link from "next/link";
-import { CalendarCheck2, ExternalLink } from "lucide-react";
+import { CalendarCheck2 } from "lucide-react";
+
+import { ApiStatus } from "@/components/layout/api-status.component";
 
 export function Footer() {
   return (
@@ -10,15 +11,7 @@ export function Footer() {
           Zelo
         </div>
 
-        <Link
-          href="https://github.com/filipeyuan/agendamento-app"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 transition-colors hover:text-foreground"
-        >
-          Código no GitHub
-          <ExternalLink className="h-3.5 w-3.5" />
-        </Link>
+        <ApiStatus />
       </div>
     </footer>
   );
