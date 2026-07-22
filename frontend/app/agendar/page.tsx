@@ -2,6 +2,12 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { DayCellContentArg } from "@fullcalendar/core";
+import ptBrLocale from "@fullcalendar/core/locales/pt-br";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import type { DateClickArg } from "@fullcalendar/interaction";
+import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react";
 import useSWR from "swr";
 import { CalendarCheck, CalendarX } from "lucide-react";
 
@@ -9,14 +15,13 @@ import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createAppointment } from "@/lib/api/appointments";
 import { availableSlots as fetchAvailableSlots, listServices } from "@/lib/api/services";
 import { cn } from "@/lib/utils/cn";
-import { todayIsoDate } from "@/lib/utils/date";
+import { toLocalIsoDate, todayIsoDate } from "@/lib/utils/date";
 import { formatApiError } from "@/lib/utils/format-error";
 
 function formatSlotTime(iso: string) {
@@ -81,36 +86,41 @@ function AgendarForm() {
       <CardContent className="flex flex-col gap-4">
         {error && <Alert variant="destructive">{error}</Alert>}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="service">Serviço</Label>
-            <Select
-              id="service"
-              value={serviceId}
-              onChange={(e) => {
-                setServiceIdOverride(e.target.value);
-                setSelectedSlot(null);
-              }}
-            >
-              {services?.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name} ({service.duration_minutes} min)
-                </option>
-              ))}
-            </Select>
-          </div>
+        <div>
+          <Label htmlFor="service">Serviço</Label>
+          <Select
+            id="service"
+            value={serviceId}
+            onChange={(e) => {
+              setServiceIdOverride(e.target.value);
+              setSelectedSlot(null);
+            }}
+          >
+            {services?.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.name} ({service.duration_minutes} min)
+              </option>
+            ))}
+          </Select>
+        </div>
 
-          <div>
-            <Label htmlFor="date">Data</Label>
-            <Input
-              id="date"
-              type="date"
-              min={todayIsoDate()}
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
+        <div>
+          <Label>Data</Label>
+          <div className="rounded-md border border-border p-2">
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{ left: "prev,next today", center: "title", right: "" }}
+              locale={ptBrLocale}
+              height="auto"
+              validRange={{ start: todayIsoDate() }}
+              dateClick={(arg: DateClickArg) => {
+                setDate(toLocalIsoDate(arg.date));
                 setSelectedSlot(null);
               }}
+              dayCellClassNames={(arg: DayCellContentArg) =>
+                toLocalIsoDate(arg.date) === date ? ["selected-date-cell"] : []
+              }
             />
           </div>
         </div>

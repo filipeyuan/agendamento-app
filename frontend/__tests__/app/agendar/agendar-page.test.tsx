@@ -14,6 +14,14 @@ jest.mock("@/components/auth/require-auth.component", () => ({
 jest.mock("@/lib/api/services");
 jest.mock("@/lib/api/appointments");
 
+jest.mock("@fullcalendar/react", () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-calendar" />,
+}));
+jest.mock("@fullcalendar/core/locales/pt-br", () => ({}));
+jest.mock("@fullcalendar/daygrid", () => ({}));
+jest.mock("@fullcalendar/interaction", () => ({}));
+
 const push = jest.fn();
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push }),

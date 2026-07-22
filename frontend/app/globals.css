@@ -178,3 +178,9 @@ body {
   font-weight: 600;
   font-size: 1.125rem;
 }
+
+.fc .selected-date-cell .fc-daygrid-day-number {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 9999px;
+}
