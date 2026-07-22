@@ -97,7 +97,7 @@ describe("AgendamentosAdminPage", () => {
 
     renderPage();
 
-    expect(await screen.findByText(/corte de cabelo · cliente teste/i)).toBeInTheDocument();
+    expect(await screen.findByText("Corte de cabelo")).toBeInTheDocument();
     expect(mockedAdminAppointments).toHaveBeenCalledWith({
       from: "2026-07-01",
       to: "2026-08-01",
@@ -112,7 +112,7 @@ describe("AgendamentosAdminPage", () => {
 
     renderPage();
 
-    await user.click(await screen.findByText(/corte de cabelo · cliente teste/i));
+    await user.click(await screen.findByText("Corte de cabelo"));
 
     expect(screen.getByText("Pendente", { selector: "span" })).toBeInTheDocument();
     expect(screen.getByText(/cliente@example.com/i)).toBeInTheDocument();
