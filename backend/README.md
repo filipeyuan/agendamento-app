@@ -89,7 +89,7 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 |---|---|---|---|
 | POST | `/api/appointments` | sim | Cria um agendamento (retorna 409 em caso de conflito de horário) |
 | GET | `/api/appointments/mine` | sim | Lista os agendamentos do usuário autenticado |
-| GET | `/api/admin/appointments?date=&status=` | admin | Lista todos os agendamentos, com filtros opcionais |
+| GET | `/api/admin/appointments?date=&from=&to=&status=` | admin | Lista todos os agendamentos, com filtros opcionais (data exata ou intervalo, e status) |
 | PATCH | `/api/admin/appointments/{appointment}/status` | admin | Atualiza o status (`confirmed`, `cancelled`, `completed`) |
 
 ## Regra de conflito de horário

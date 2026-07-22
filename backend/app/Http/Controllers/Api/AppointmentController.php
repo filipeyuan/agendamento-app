@@ -40,7 +40,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Lista todos os agendamentos, com filtros opcionais de data e status.
+     * Lista todos os agendamentos, com filtros opcionais de data (exata ou intervalo) e status.
      */
     public function adminIndex(Request $request): AnonymousResourceCollection
     {
@@ -48,12 +48,16 @@ class AppointmentController extends Controller
 
         $request->validate([
             'date' => ['sometimes', 'date'],
+            'from' => ['sometimes', 'date'],
+            'to' => ['sometimes', 'date'],
             'status' => ['sometimes', Rule::enum(AppointmentStatus::class)],
         ]);
 
         $appointments = Appointment::query()
             ->with(['service', 'user'])
             ->when($request->date, fn ($query, $date) => $query->whereDate('start_at', $date))
+            ->when($request->from, fn ($query, $from) => $query->where('start_at', '>=', $from))
+            ->when($request->to, fn ($query, $to) => $query->where('start_at', '<', $to))
             ->when($request->status, fn ($query, $status) => $query->where('status', $status))
             ->orderBy('start_at')
             ->get();

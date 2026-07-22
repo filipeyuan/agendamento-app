@@ -35,7 +35,7 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 1** — MVP funcional: CRUD de serviços, agendamento com regra de conflito, dashboard admin
 - [x] **Fase 2** — Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
 - [x] **Fase 3** — Documentação de API (OpenAPI/Swagger)
-- [ ] **Fase 4** — Diferenciais: Google Calendar + assistente de agendamento via IA + calendário visual (FullCalendar)
+- [ ] **Fase 4** — Diferenciais: ~~calendário visual (FullCalendar)~~ + Google Calendar + assistente de agendamento via IA
 - [ ] **Fase 5** — Polimento final: identidade de produto (nome/copy reais), ilustrações e dashboard de analytics
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).
