@@ -9,25 +9,10 @@ import {
   Users,
 } from "lucide-react";
 
+import { ApiStatus } from "@/components/layout/api-status.component";
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils/cn";
-
-type HealthResponse = {
-  status: "ok";
-  timestamp: string;
-};
-
-async function getApiHealth() {
-  try {
-    const res = await apiFetch("/health");
-    if (!res.ok) return null;
-    return (await res.json()) as HealthResponse;
-  } catch {
-    return null;
-  }
-}
 
 const steps = [
   {
@@ -78,9 +63,7 @@ const features = [
 
 const audiences = ["Salões de beleza", "Barbearias", "Clínicas e consultórios", "Estúdios", "Pet shops"];
 
-export default async function Home() {
-  const health = await getApiHealth();
-
+export default function Home() {
   return (
     <main className="flex-1">
       <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-20 text-center">
@@ -97,15 +80,8 @@ export default async function Home() {
           <HeroActions />
         </div>
 
-        <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-          <span
-            className={cn(
-              "h-2 w-2 rounded-full",
-              health ? "bg-success" : "bg-destructive"
-            )}
-          />
-          API {health ? "online" : "offline"}
-          {health && ` · última verificação ${new Date(health.timestamp).toLocaleTimeString("pt-BR")}`}
+        <div className="mt-4">
+          <ApiStatus />
         </div>
 
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
