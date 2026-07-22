@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA e a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes).
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes) e o dashboard de analytics.
 
 ## Variáveis de ambiente
 
@@ -124,6 +124,12 @@ O assistente usa a API do Gemini com function calling: ele mesmo decide quando c
 | DELETE | `/api/admin/google-calendar/disconnect` | admin | Desconecta o Google Calendar |
 
 Com a conexão ativa (`App\Services\GoogleCalendarService`), confirmar um agendamento cria um evento no Google Calendar do admin, cancelar remove esse evento, e os horários já ocupados na agenda pessoal do admin no Google entram como indisponíveis no cálculo de horários livres.
+
+### Dashboard de analytics
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/api/admin/analytics?days=30` | admin | Resumo de agendamentos no período: por status, por dia, receita (confirmados + concluídos) e serviços mais agendados |
 
 ## Regra de conflito de horário
 
