@@ -13,6 +13,7 @@ use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\GoogleCalendarService;
 use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Response as DocumentedResponse;
 use Illuminate\Http\JsonResponse;
@@ -111,17 +112,33 @@ class AppointmentController extends Controller
     /**
      * Atualiza o status de um agendamento (confirmar, cancelar ou concluir).
      */
-    public function updateStatus(UpdateAppointmentStatusRequest $request, Appointment $appointment): AppointmentResource
-    {
+    public function updateStatus(
+        UpdateAppointmentStatusRequest $request,
+        Appointment $appointment,
+        GoogleCalendarService $googleCalendar
+    ): AppointmentResource {
         $this->authorize('updateStatus', $appointment);
 
         $user = $request->user();
         abort_if(! $user instanceof User, 401);
 
+        $newStatus = AppointmentStatus::from($request->validated('status'));
+
         $appointment->update([
-            'status' => $request->validated('status'),
+            'status' => $newStatus,
             'confirmed_by' => $user->id,
         ]);
+
+        if ($newStatus === AppointmentStatus::Confirmed && ! $appointment->google_event_id) {
+            $appointment->update([
+                'google_event_id' => $googleCalendar->createEvent($appointment->load(['service', 'user'])),
+            ]);
+        }
+
+        if ($newStatus === AppointmentStatus::Cancelled && $appointment->google_event_id) {
+            $googleCalendar->deleteEvent($appointment->google_event_id);
+            $appointment->update(['google_event_id' => null]);
+        }
 
         return AppointmentResource::make($appointment->load('service'));
     }

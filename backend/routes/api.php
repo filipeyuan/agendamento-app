@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BusinessHourController;
+use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,8 @@ Route::get('/health', function () {
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
 
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}/available-slots', [AppointmentController::class, 'availableSlots']);
@@ -47,5 +50,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/schedule-blocks', [ScheduleBlockController::class, 'index']);
         Route::post('/schedule-blocks', [ScheduleBlockController::class, 'store']);
         Route::delete('/schedule-blocks/{scheduleBlock}', [ScheduleBlockController::class, 'destroy']);
+
+        Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect']);
+        Route::get('/google-calendar/status', [GoogleCalendarController::class, 'status']);
+        Route::delete('/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect']);
     });
 });

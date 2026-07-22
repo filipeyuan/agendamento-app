@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 
 class BookingService
 {
+    public function __construct(private GoogleCalendarService $googleCalendar) {}
+
     /**
      * @return array<int, Carbon>
      */
@@ -49,7 +51,8 @@ class BookingService
             ->concat($blocks->map(fn (ScheduleBlock $block) => [
                 Carbon::parse("{$date} {$block->start_time}"),
                 Carbon::parse("{$date} {$block->end_time}"),
-            ]));
+            ]))
+            ->concat($this->googleCalendar->getBusyRanges($businessStart, $businessEnd));
 
         $slots = [];
 

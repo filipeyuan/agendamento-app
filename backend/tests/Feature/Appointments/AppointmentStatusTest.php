@@ -7,8 +7,10 @@ namespace Tests\Feature\Appointments;
 use App\Enums\AppointmentStatus;
 use App\Enums\UserRole;
 use App\Models\Appointment;
+use App\Models\GoogleCalendarConnection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -32,6 +34,53 @@ class AppointmentStatusTest extends TestCase
             'id' => $appointment->id,
             'status' => AppointmentStatus::Confirmed->value,
             'confirmed_by' => $admin->id,
+        ]);
+    }
+
+    #[Test]
+    public function confirming_an_appointment_creates_a_google_calendar_event_when_connected(): void
+    {
+        GoogleCalendarConnection::factory()->create();
+        Http::fake([
+            'www.googleapis.com/*' => Http::response(['id' => 'google-event-123']),
+        ]);
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
+
+        $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
+            'status' => AppointmentStatus::Confirmed->value,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'google_event_id' => 'google-event-123',
+        ]);
+    }
+
+    #[Test]
+    public function cancelling_an_appointment_removes_its_google_calendar_event(): void
+    {
+        GoogleCalendarConnection::factory()->create();
+        Http::fake([
+            'www.googleapis.com/*' => Http::response([], 204),
+        ]);
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $appointment = Appointment::factory()->create([
+            'status' => AppointmentStatus::Confirmed,
+            'google_event_id' => 'google-event-123',
+        ]);
+
+        $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
+            'status' => AppointmentStatus::Cancelled->value,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'google_event_id' => null,
         ]);
     }
 

@@ -7,10 +7,12 @@ namespace Tests\Feature\Appointments;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BusinessHour;
+use App\Models\GoogleCalendarConnection;
 use App\Models\ScheduleBlock;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -143,6 +145,34 @@ class BookingTest extends TestCase
             'date' => $date,
             'start_time' => '10:00',
             'end_time' => '10:30',
+        ]);
+
+        $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
+
+        $response->assertOk();
+        $this->assertNotContains(
+            now()->parse("{$date} 10:00:00")->toIso8601String(),
+            $response->json('slots'),
+        );
+    }
+
+    #[Test]
+    public function available_slots_exclude_busy_ranges_from_a_connected_google_calendar(): void
+    {
+        GoogleCalendarConnection::factory()->create();
+        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $date = now()->addDay()->toDateString();
+
+        Http::fake([
+            'www.googleapis.com/*' => Http::response([
+                'calendars' => [
+                    'primary' => [
+                        'busy' => [
+                            ['start' => "{$date}T10:00:00-03:00", 'end' => "{$date}T10:30:00-03:00"],
+                        ],
+                    ],
+                ],
+            ]),
         ]);
 
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");

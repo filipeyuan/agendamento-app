@@ -1,17 +1,24 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { CalendarOff, Trash2 } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  disconnectGoogleCalendar,
+  getGoogleCalendarConnectUrl,
+  getGoogleCalendarStatus,
+} from "@/lib/api/google-calendar";
 import {
   createScheduleBlock,
   deleteScheduleBlock,
@@ -130,6 +137,82 @@ function BusinessHoursCard() {
         )}
 
         {hours && <BusinessHoursEditor initialHours={hours} onSaved={reloadHours} />}
+      </CardContent>
+    </Card>
+  );
+}
+
+function GoogleCalendarCard() {
+  const { data: connected, isLoading, mutate: reloadStatus } = useSWR(
+    "google-calendar-status",
+    getGoogleCalendarStatus
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [isWorking, setIsWorking] = useState(false);
+
+  async function handleConnect() {
+    setError(null);
+    setIsWorking(true);
+
+    try {
+      const url = await getGoogleCalendarConnectUrl();
+      window.location.href = url;
+    } catch (err) {
+      setError(formatApiError(err));
+      setIsWorking(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    setError(null);
+    setIsWorking(true);
+
+    try {
+      await disconnectGoogleCalendar();
+      reloadStatus();
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setIsWorking(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Google Calendar</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {error && <Alert variant="destructive">{error}</Alert>}
+
+        {isLoading ? (
+          <div className="flex justify-center py-6">
+            <Spinner className="h-6 w-6 text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Badge variant={connected ? "success" : "secondary"}>
+                {connected ? "Conectado" : "Não conectado"}
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                {connected
+                  ? "Agendamentos confirmados são criados no seu Google Calendar, e horários já ocupados na sua agenda pessoal bloqueiam o agendamento."
+                  : "Conecte pra sincronizar os agendamentos confirmados com o seu Google Calendar."}
+              </p>
+            </div>
+
+            {connected ? (
+              <Button variant="destructive" size="sm" disabled={isWorking} onClick={handleDisconnect}>
+                Desconectar
+              </Button>
+            ) : (
+              <Button size="sm" disabled={isWorking} onClick={handleConnect}>
+                Conectar
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -273,11 +356,38 @@ function ScheduleBlocksCard() {
   );
 }
 
+function GoogleCalendarStatusAlert() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const google = searchParams.get("google");
+
+  if (!google) return null;
+
+  function dismiss() {
+    router.replace("/admin/horarios");
+  }
+
+  return (
+    <Alert variant={google === "connected" ? "success" : "destructive"} className="flex items-center justify-between gap-4">
+      <span>
+        {google === "connected"
+          ? "Google Calendar conectado com sucesso."
+          : "Não foi possível conectar ao Google Calendar. Tente de novo."}
+      </span>
+      <Button variant="outline" size="sm" onClick={dismiss}>
+        Fechar
+      </Button>
+    </Alert>
+  );
+}
+
 export default function HorariosAdminPage() {
   return (
     <RequireAuth role="admin">
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
         <h1 className="text-2xl font-semibold text-foreground">Horário de atendimento</h1>
+        <GoogleCalendarStatusAlert />
+        <GoogleCalendarCard />
         <BusinessHoursCard />
         <ScheduleBlocksCard />
       </main>
