@@ -49,6 +49,7 @@ export function Navbar() {
           {!isLoading && user?.role === "client" && (
             <>
               <NavLink href="/agendar">Agendar</NavLink>
+              <NavLink href="/assistente">Assistente (IA)</NavLink>
               <NavLink href="/meus-agendamentos">Meus agendamentos</NavLink>
             </>
           )}
