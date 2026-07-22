@@ -1,15 +1,15 @@
-import Link from "next/link";
 import {
-  BookOpen,
+  BadgeCheck,
   CalendarClock,
   CheckCircle2,
   LayoutDashboard,
   Scissors,
   ShieldCheck,
+  Smartphone,
   Users,
 } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
+import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
 import { cn } from "@/lib/utils/cn";
@@ -55,7 +55,7 @@ const features = [
     icon: ShieldCheck,
     title: "Sem horário duplicado",
     description:
-      "A confirmação é validada no servidor, não só na tela — mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
+      "A confirmação é validada no servidor, não só na tela. Mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
   },
   {
     icon: LayoutDashboard,
@@ -70,12 +70,13 @@ const features = [
       "Clientes agendam e acompanham o próprio histórico. Você gerencia serviços, preços e confirmações.",
   },
   {
-    icon: BookOpen,
-    title: "API documentada",
-    description:
-      "Toda rota, autenticação e schema documentados automaticamente — pronta pra integrar com o que precisar.",
+    icon: Smartphone,
+    title: "Funciona em qualquer lugar",
+    description: "É só abrir no navegador, do celular ou do computador. Sem instalar nada.",
   },
 ];
+
+const audiences = ["Salões de beleza", "Barbearias", "Clínicas e consultórios", "Estúdios", "Pet shops"];
 
 export default async function Home() {
   const health = await getApiHealth();
@@ -88,17 +89,12 @@ export default async function Home() {
         </h1>
 
         <p className="max-w-xl text-lg text-muted-foreground">
-          Cliente escolhe serviço e horário livre, admin gerencia tudo em um painel —
-          com bloqueio automático de horários conflitantes.
+          Cliente escolhe serviço e horário livre. Admin gerencia tudo em um painel, com
+          bloqueio automático de horários conflitantes.
         </p>
 
         <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/servicos" className={cn(buttonVariants({ size: "lg" }))}>
-            Ver serviços
-          </Link>
-          <Link href="/cadastro" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-            Criar conta
-          </Link>
+          <HeroActions />
         </div>
 
         <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -110,6 +106,18 @@ export default async function Home() {
           />
           API {health ? "online" : "offline"}
           {health && ` · última verificação ${new Date(health.timestamp).toLocaleTimeString("pt-BR")}`}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          {audiences.map((audience) => (
+            <span
+              key={audience}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground"
+            >
+              <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+              {audience}
+            </span>
+          ))}
         </div>
       </section>
 

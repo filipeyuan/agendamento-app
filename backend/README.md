@@ -1,4 +1,4 @@
-# Backend — Zelo (API Laravel)
+# Backend: Zelo (API Laravel)
 
 API REST em Laravel para o sistema de agendamento. Autenticação via Laravel Sanctum (tokens, não cookies), pensada pra ser consumida por um frontend em outro domínio (Next.js na Vercel).
 
@@ -31,7 +31,7 @@ Na raiz do monorepo:
 docker-compose up
 ```
 
-O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount). O `backend/Dockerfile` (sem `.dev`) é o de produção, usado pelo Render — não roda com `docker-compose`.
+O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount). O `backend/Dockerfile` (sem `.dev`) é o de produção, usado pelo Render. Não roda com `docker-compose`.
 
 ## Qualidade de código
 
@@ -56,11 +56,11 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 
 ## Documentação da API
 
-A documentação completa e interativa (OpenAPI 3.1, gerada a partir do próprio código — rotas, Form Requests e API Resources) fica em `/docs/api`. Localmente: `http://127.0.0.1:8000/docs/api`. O JSON da especificação fica em `/docs/api.json`.
+A documentação completa e interativa (OpenAPI 3.1, gerada a partir do próprio código: rotas, Form Requests e API Resources) fica em `/docs/api`. Localmente: `http://127.0.0.1:8000/docs/api`. O JSON da especificação fica em `/docs/api.json`.
 
 ## Endpoints
 
-Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela abaixo é um resumo rápido — a referência completa está em `/docs/api`.
+Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela abaixo é um resumo rápido. A referência completa está em `/docs/api`.
 
 ### Autenticação
 

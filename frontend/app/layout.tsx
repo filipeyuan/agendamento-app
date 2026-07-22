@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Zelo",
-  description: "Zelo — agendamento online para negócios de serviço, sem conflito de horário.",
+  description: "Zelo: agendamento online para negócios de serviço, sem conflito de horário.",
 };
 
 export default function RootLayout({

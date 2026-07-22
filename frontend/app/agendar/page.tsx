@@ -79,11 +79,11 @@ function AgendarForm() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-2xl">
+    <Card className="mx-auto w-full max-w-4xl">
       <CardHeader>
         <CardTitle>Agendar serviço</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-6">
         {error && <Alert variant="destructive">{error}</Alert>}
 
         <div>
@@ -104,63 +104,69 @@ function AgendarForm() {
           </Select>
         </div>
 
-        <div>
-          <Label>Data</Label>
-          <div className="fc-compact mx-auto max-w-72 rounded-md border border-border p-2">
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              headerToolbar={{ left: "prev", center: "title", right: "next" }}
-              locale={ptBrLocale}
-              height="auto"
-              validRange={{ start: todayIsoDate() }}
-              dateClick={(arg: DateClickArg) => {
-                setDate(toLocalIsoDate(arg.date));
-                setSelectedSlot(null);
-              }}
-              dayCellClassNames={(arg: DayCellContentArg) =>
-                toLocalIsoDate(arg.date) === date ? ["selected-date-cell"] : []
-              }
-            />
+        <div className="grid gap-6 md:grid-cols-[19rem_1fr]">
+          <div>
+            <Label>Data</Label>
+            <div className="fc-compact rounded-lg border border-border bg-card p-2 shadow-sm">
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={{ left: "prev", center: "title", right: "next" }}
+                locale={ptBrLocale}
+                height="auto"
+                validRange={{ start: todayIsoDate() }}
+                dateClick={(arg: DateClickArg) => {
+                  setDate(toLocalIsoDate(arg.date));
+                  setSelectedSlot(null);
+                }}
+                dayCellClassNames={(arg: DayCellContentArg) =>
+                  toLocalIsoDate(arg.date) === date ? ["selected-date-cell"] : []
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <div>
+              <Label>Horário</Label>
+              {isLoadingSlots && (
+                <p className="text-sm text-muted-foreground">Carregando horários...</p>
+              )}
+              {!isLoadingSlots && slots?.length === 0 && (
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <CalendarX className="h-4 w-4" />
+                  Nenhum horário livre nesta data.
+                </p>
+              )}
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {slots?.map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setSelectedSlot(slot)}
+                    className={cn(
+                      "cursor-pointer rounded-md border border-border py-1.5 text-sm transition-colors hover:bg-accent",
+                      validSelectedSlot === slot &&
+                        "border-primary bg-primary text-primary-foreground hover:opacity-90"
+                    )}
+                  >
+                    {formatSlotTime(slot)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Observações (opcional)</Label>
+              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+
+            <Button disabled={!validSelectedSlot || isSubmitting} onClick={handleSubmit}>
+              <CalendarCheck className="h-4 w-4" />
+              {isSubmitting ? "Agendando..." : "Confirmar agendamento"}
+            </Button>
           </div>
         </div>
-
-        <div>
-          <Label>Horário</Label>
-          {isLoadingSlots && <p className="text-sm text-muted-foreground">Carregando horários...</p>}
-          {!isLoadingSlots && slots?.length === 0 && (
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <CalendarX className="h-4 w-4" />
-              Nenhum horário livre nesta data.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {slots?.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => setSelectedSlot(slot)}
-                className={cn(
-                  "cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent",
-                  validSelectedSlot === slot &&
-                    "border-primary bg-primary text-primary-foreground hover:opacity-90"
-                )}
-              >
-                {formatSlotTime(slot)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="notes">Observações (opcional)</Label>
-          <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </div>
-
-        <Button disabled={!validSelectedSlot || isSubmitting} onClick={handleSubmit}>
-          <CalendarCheck className="h-4 w-4" />
-          {isSubmitting ? "Agendando..." : "Confirmar agendamento"}
-        </Button>
       </CardContent>
     </Card>
   );

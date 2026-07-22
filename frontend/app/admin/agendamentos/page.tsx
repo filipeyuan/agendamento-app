@@ -27,11 +27,11 @@ import {
   type AppointmentStatus,
 } from "@/lib/types/appointments";
 
-const STATUS_COLOR: Record<AppointmentStatus, string> = {
-  pending: "var(--warning)",
-  confirmed: "var(--success)",
-  cancelled: "var(--destructive)",
-  completed: "var(--secondary)",
+const STATUS_COLOR: Record<AppointmentStatus, { background: string; text: string }> = {
+  pending: { background: "var(--warning)", text: "var(--warning-foreground)" },
+  confirmed: { background: "var(--success)", text: "var(--success-foreground)" },
+  cancelled: { background: "var(--destructive)", text: "var(--destructive-foreground)" },
+  completed: { background: "var(--secondary)", text: "var(--secondary-foreground)" },
 };
 
 function formatDateTime(iso: string) {
@@ -115,8 +115,9 @@ function AgendamentosAdminPanel() {
         title: `${appointment.service.name} · ${appointment.client?.name ?? ""}`,
         start: appointment.start_at,
         end: appointment.end_at,
-        backgroundColor: STATUS_COLOR[appointment.status],
-        borderColor: STATUS_COLOR[appointment.status],
+        backgroundColor: STATUS_COLOR[appointment.status].background,
+        borderColor: STATUS_COLOR[appointment.status].background,
+        textColor: STATUS_COLOR[appointment.status].text,
       })),
     [appointments]
   );
@@ -170,6 +171,7 @@ function AgendamentosAdminPanel() {
             }}
             locale={ptBrLocale}
             height="auto"
+            eventDisplay="block"
             events={events}
             eventClick={handleEventClick}
             datesSet={handleDatesSet}
