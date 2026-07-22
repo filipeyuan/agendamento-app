@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes) e atualização de status pelo admin.
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, e horário de atendimento/bloqueios de agenda.
 
 ## Variáveis de ambiente
 
@@ -52,7 +52,7 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 | `DB_CONNECTION` | `sqlite` local, `pgsql` em produção |
 | `DB_URL` | Em produção, connection string completa do Postgres (ex: Neon) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciais do admin criado pelo seeder |
-| `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário de funcionamento usado no cálculo de horários livres (default `09:00`–`18:00`) |
+| `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário padrão usado só na primeira vez que o seeder cria o horário de atendimento (depois disso, o horário fica no banco e é editado por `/api/admin/business-hours`) |
 
 ## Documentação da API
 
@@ -92,6 +92,16 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | GET | `/api/admin/appointments?date=&from=&to=&status=` | admin | Lista todos os agendamentos, com filtros opcionais (data exata ou intervalo, e status) |
 | PATCH | `/api/admin/appointments/{appointment}/status` | admin | Atualiza o status (`confirmed`, `cancelled`, `completed`) |
 
+### Horário de atendimento e bloqueios
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/api/admin/business-hours` | admin | Lista o horário de atendimento dos 7 dias da semana |
+| PUT | `/api/admin/business-hours` | admin | Atualiza o horário de atendimento (os 7 dias de uma vez) |
+| GET | `/api/admin/schedule-blocks?from=&to=` | admin | Lista os bloqueios de horário, com filtro opcional de período |
+| POST | `/api/admin/schedule-blocks` | admin | Cria um bloqueio (dia inteiro ou um intervalo específico) |
+| DELETE | `/api/admin/schedule-blocks/{scheduleBlock}` | admin | Remove um bloqueio |
+
 ## Regra de conflito de horário
 
-`App\Services\BookingService` calcula os horários livres a partir do horário de funcionamento (`config/booking.php`) menos os agendamentos ativos, e valida o conflito de novo no momento da criação (dentro de uma transação com lock), pra evitar corrida entre duas requisições simultâneas.
+`App\Services\BookingService` calcula os horários livres a partir do horário de atendimento do dia da semana e dos bloqueios cadastrados (ambos configuráveis pelo admin, guardados em `business_hours` e `schedule_blocks`) menos os agendamentos ativos, e valida o conflito de novo no momento da criação (dentro de uma transação com lock), pra evitar corrida entre duas requisições simultâneas.

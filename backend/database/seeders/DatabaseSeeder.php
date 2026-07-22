@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\UserRole;
+use App\Models\BusinessHour;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -14,6 +15,17 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        for ($dayOfWeek = 0; $dayOfWeek <= 6; $dayOfWeek++) {
+            BusinessHour::firstOrCreate(
+                ['day_of_week' => $dayOfWeek],
+                [
+                    'is_open' => true,
+                    'start_time' => config('booking.business_hours.start'),
+                    'end_time' => config('booking.business_hours.end'),
+                ]
+            );
+        }
+
         $admin = User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@agendamento.app')],
             [

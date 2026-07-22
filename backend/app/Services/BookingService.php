@@ -8,6 +8,8 @@ use App\Enums\AppointmentSource;
 use App\Enums\AppointmentStatus;
 use App\Exceptions\AppointmentConflictException;
 use App\Models\Appointment;
+use App\Models\BusinessHour;
+use App\Models\ScheduleBlock;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
@@ -20,15 +22,34 @@ class BookingService
      */
     public function availableSlots(Service $service, string $date): array
     {
-        $businessStart = Carbon::parse("{$date} ".config('booking.business_hours.start'));
-        $businessEnd = Carbon::parse("{$date} ".config('booking.business_hours.end'));
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+
+        $businessHour = BusinessHour::query()->where('day_of_week', $dayOfWeek)->first();
+
+        if (! $businessHour || ! $businessHour->is_open) {
+            return [];
+        }
+
+        $blocks = ScheduleBlock::query()->whereDate('date', $date)->get();
+
+        if ($blocks->contains(fn (ScheduleBlock $block) => $block->isAllDay())) {
+            return [];
+        }
+
+        $businessStart = Carbon::parse("{$date} {$businessHour->start_time}");
+        $businessEnd = Carbon::parse("{$date} {$businessHour->end_time}");
         $interval = config('booking.slot_interval_minutes');
         $duration = $service->duration_minutes;
 
         $busyRanges = Appointment::query()
             ->active()
             ->whereBetween('start_at', [$businessStart->clone()->subDay(), $businessEnd->clone()->addDay()])
-            ->get(['start_at', 'end_at']);
+            ->get(['start_at', 'end_at'])
+            ->map(fn (Appointment $appointment) => [$appointment->start_at, $appointment->end_at])
+            ->concat($blocks->map(fn (ScheduleBlock $block) => [
+                Carbon::parse("{$date} {$block->start_time}"),
+                Carbon::parse("{$date} {$block->end_time}"),
+            ]));
 
         $slots = [];
 
@@ -36,7 +57,7 @@ class BookingService
             $slotEnd = $slotStart->clone()->addMinutes($duration);
 
             $hasConflict = $busyRanges->contains(
-                fn (Appointment $appointment) => $appointment->start_at->lt($slotEnd) && $appointment->end_at->gt($slotStart)
+                fn (array $range) => $range[0]->lt($slotEnd) && $range[1]->gt($slotStart)
             );
 
             if (! $hasConflict && $slotStart->isFuture()) {

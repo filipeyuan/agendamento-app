@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BusinessHourController;
+use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,5 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/appointments', [AppointmentController::class, 'adminIndex']);
         Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']);
+
+        Route::get('/business-hours', [BusinessHourController::class, 'index']);
+        Route::put('/business-hours', [BusinessHourController::class, 'update']);
+
+        Route::get('/schedule-blocks', [ScheduleBlockController::class, 'index']);
+        Route::post('/schedule-blocks', [ScheduleBlockController::class, 'store']);
+        Route::delete('/schedule-blocks/{scheduleBlock}', [ScheduleBlockController::class, 'destroy']);
     });
 });
