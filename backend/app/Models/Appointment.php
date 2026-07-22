@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read User $user
  * @property-read Service $service
  */
-#[Fillable(['user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes'])]
+#[Fillable(['user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes', 'google_event_id'])]
 class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
