@@ -6,6 +6,8 @@ namespace Tests\Feature\Appointments;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\BusinessHour;
+use App\Models\ScheduleBlock;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +17,15 @@ use Tests\TestCase;
 class BookingTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        foreach (range(0, 6) as $dayOfWeek) {
+            BusinessHour::factory()->create(['day_of_week' => $dayOfWeek]);
+        }
+    }
 
     #[Test]
     public function an_authenticated_client_can_book_an_available_slot(): void
@@ -97,6 +108,41 @@ class BookingTest extends TestCase
             'service_id' => $service->id,
             'start_at' => "{$date} 10:00:00",
             'end_at' => "{$date} 10:30:00",
+        ]);
+
+        $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
+
+        $response->assertOk();
+        $this->assertNotContains(
+            now()->parse("{$date} 10:00:00")->toIso8601String(),
+            $response->json('slots'),
+        );
+    }
+
+    #[Test]
+    public function available_slots_are_empty_when_business_is_closed_that_day(): void
+    {
+        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $date = now()->addDay();
+
+        BusinessHour::query()->where('day_of_week', $date->dayOfWeek)->update(['is_open' => false]);
+
+        $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date->toDateString()}");
+
+        $response->assertOk();
+        $this->assertEmpty($response->json('slots'));
+    }
+
+    #[Test]
+    public function available_slots_exclude_a_scheduled_block(): void
+    {
+        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $date = now()->addDay()->toDateString();
+
+        ScheduleBlock::factory()->create([
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '10:30',
         ]);
 
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
