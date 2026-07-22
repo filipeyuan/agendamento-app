@@ -57,7 +57,7 @@ return [
     ],
 
     'ui' => [
-        'title' => 'Agendamento App API',
+        'title' => 'Zelo API',
     ],
 
     'renderer' => 'elements',

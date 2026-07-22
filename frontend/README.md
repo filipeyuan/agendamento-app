@@ -1,4 +1,4 @@
-# Frontend — Agendamento App (Next.js)
+# Frontend — Zelo (Next.js)
 
 Frontend do sistema de agendamento, consumindo a API Laravel via REST.
 

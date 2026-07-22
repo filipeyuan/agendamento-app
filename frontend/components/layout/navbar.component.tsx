@@ -40,7 +40,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
           <CalendarCheck2 className="h-5 w-5 text-primary" />
-          Agendamento App
+          Zelo
         </Link>
 
         <nav className="flex items-center gap-1">

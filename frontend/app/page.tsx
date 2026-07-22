@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, Scissors, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  LayoutDashboard,
+  Scissors,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
@@ -43,23 +50,45 @@ const steps = [
   },
 ];
 
+const features = [
+  {
+    icon: ShieldCheck,
+    title: "Sem horário duplicado",
+    description:
+      "A confirmação é validada no servidor, não só na tela — mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Painel completo pro seu negócio",
+    description:
+      "Veja a semana, o mês ou a lista de agendamentos, com status colorido, e confirme ou cancele em um clique.",
+  },
+  {
+    icon: Users,
+    title: "Um lugar pra cada perfil",
+    description:
+      "Clientes agendam e acompanham o próprio histórico. Você gerencia serviços, preços e confirmações.",
+  },
+  {
+    icon: BookOpen,
+    title: "API documentada",
+    description:
+      "Toda rota, autenticação e schema documentados automaticamente — pronta pra integrar com o que precisar.",
+  },
+];
+
 export default async function Home() {
   const health = await getApiHealth();
 
   return (
     <main className="flex-1">
       <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-20 text-center">
-        <Badge variant="secondary" className="gap-1.5">
-          <Sparkles className="h-3.5 w-3.5" />
-          Portfólio · Next.js + Laravel
-        </Badge>
-
         <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          Agendamento sem dor de cabeça
+          Sua agenda, com zelo.
         </h1>
 
         <p className="max-w-xl text-lg text-muted-foreground">
-          Cliente escolhe serviço e horário livre, admin gerencia tudo em um dashboard —
+          Cliente escolhe serviço e horário livre, admin gerencia tudo em um painel —
           com bloqueio automático de horários conflitantes.
         </p>
 
@@ -96,6 +125,30 @@ export default async function Home() {
             </CardContent>
           </Card>
         ))}
+      </section>
+
+      <section className="border-t border-border bg-muted/40 py-20">
+        <div className="mx-auto max-w-4xl px-4">
+          <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            O que o Zelo resolve
+          </h2>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            {features.map((feature) => (
+              <Card key={feature.title}>
+                <CardHeader className="flex-row items-center gap-3 space-y-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <feature.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );

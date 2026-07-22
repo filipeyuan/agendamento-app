@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Footer } from "@/components/layout/footer.component";
 import { Navbar } from "@/components/layout/navbar.component";
 import { AuthProvider } from "@/lib/auth/context";
 import { THEME_INIT_SCRIPT } from "@/lib/utils/theme";
@@ -18,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agendamento App",
-  description: "Sistema de agendamento online — Next.js + Laravel",
+  title: "Zelo",
+  description: "Zelo — agendamento online para negócios de serviço, sem conflito de horário.",
 };
 
 export default function RootLayout({
@@ -40,6 +41,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           {children}
+          <Footer />
         </AuthProvider>
       </body>
     </html>
