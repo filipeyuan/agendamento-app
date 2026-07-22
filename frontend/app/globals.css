@@ -3,23 +3,23 @@
 :root {
   --radius: 0.625rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0 0);
+  --background: oklch(0.985 0.004 260);
+  --foreground: oklch(0.18 0.02 265);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0 0);
+  --card: oklch(1 0.002 260);
+  --card-foreground: oklch(0.18 0.02 265);
 
-  --primary: oklch(0.5 0.19 260);
+  --primary: oklch(0.5 0.21 260);
   --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.21 0 0);
+  --secondary: oklch(0.955 0.008 260);
+  --secondary-foreground: oklch(0.22 0.02 265);
 
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.5 0 0);
+  --muted: oklch(0.955 0.008 260);
+  --muted-foreground: oklch(0.52 0.02 260);
 
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.21 0 0);
+  --accent: oklch(0.955 0.008 260);
+  --accent-foreground: oklch(0.22 0.02 265);
 
   --destructive: oklch(0.58 0.24 27);
   --destructive-foreground: oklch(0.98 0 0);
@@ -30,30 +30,30 @@
   --warning: oklch(0.75 0.16 80);
   --warning-foreground: oklch(0.2 0 0);
 
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.5 0.19 260);
+  --border: oklch(0.89 0.01 260);
+  --input: oklch(0.89 0.01 260);
+  --ring: oklch(0.5 0.21 260);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --background: oklch(0.16 0 0);
-    --foreground: oklch(0.96 0 0);
+    --background: oklch(0.15 0.015 260);
+    --foreground: oklch(0.96 0.006 260);
 
-    --card: oklch(0.2 0 0);
-    --card-foreground: oklch(0.96 0 0);
+    --card: oklch(0.19 0.015 260);
+    --card-foreground: oklch(0.96 0.006 260);
 
-    --primary: oklch(0.7 0.16 260);
+    --primary: oklch(0.7 0.18 260);
     --primary-foreground: oklch(0.16 0 0);
 
-    --secondary: oklch(0.27 0 0);
-    --secondary-foreground: oklch(0.96 0 0);
+    --secondary: oklch(0.26 0.015 260);
+    --secondary-foreground: oklch(0.96 0.006 260);
 
-    --muted: oklch(0.27 0 0);
-    --muted-foreground: oklch(0.65 0 0);
+    --muted: oklch(0.26 0.015 260);
+    --muted-foreground: oklch(0.66 0.015 260);
 
-    --accent: oklch(0.27 0 0);
-    --accent-foreground: oklch(0.96 0 0);
+    --accent: oklch(0.26 0.015 260);
+    --accent-foreground: oklch(0.96 0.006 260);
 
     --destructive: oklch(0.65 0.22 27);
     --destructive-foreground: oklch(0.16 0 0);
@@ -64,30 +64,30 @@
     --warning: oklch(0.75 0.16 80);
     --warning-foreground: oklch(0.16 0 0);
 
-    --border: oklch(0.3 0 0);
-    --input: oklch(0.3 0 0);
-    --ring: oklch(0.7 0.16 260);
+    --border: oklch(0.3 0.015 260);
+    --input: oklch(0.3 0.015 260);
+    --ring: oklch(0.7 0.18 260);
   }
 }
 
 :root[data-theme="dark"] {
-  --background: oklch(0.16 0 0);
-  --foreground: oklch(0.96 0 0);
+  --background: oklch(0.15 0.015 260);
+  --foreground: oklch(0.96 0.006 260);
 
-  --card: oklch(0.2 0 0);
-  --card-foreground: oklch(0.96 0 0);
+  --card: oklch(0.19 0.015 260);
+  --card-foreground: oklch(0.96 0.006 260);
 
-  --primary: oklch(0.7 0.16 260);
+  --primary: oklch(0.7 0.18 260);
   --primary-foreground: oklch(0.16 0 0);
 
-  --secondary: oklch(0.27 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
+  --secondary: oklch(0.26 0.015 260);
+  --secondary-foreground: oklch(0.96 0.006 260);
 
-  --muted: oklch(0.27 0 0);
-  --muted-foreground: oklch(0.65 0 0);
+  --muted: oklch(0.26 0.015 260);
+  --muted-foreground: oklch(0.66 0.015 260);
 
-  --accent: oklch(0.27 0 0);
-  --accent-foreground: oklch(0.96 0 0);
+  --accent: oklch(0.26 0.015 260);
+  --accent-foreground: oklch(0.96 0.006 260);
 
   --destructive: oklch(0.65 0.22 27);
   --destructive-foreground: oklch(0.16 0 0);
@@ -98,9 +98,9 @@
   --warning: oklch(0.75 0.16 80);
   --warning-foreground: oklch(0.16 0 0);
 
-  --border: oklch(0.3 0 0);
-  --input: oklch(0.3 0 0);
-  --ring: oklch(0.7 0.16 260);
+  --border: oklch(0.3 0.015 260);
+  --input: oklch(0.3 0.015 260);
+  --ring: oklch(0.7 0.18 260);
 }
 
 @theme inline {
@@ -183,4 +183,33 @@ body {
   background: var(--primary);
   color: var(--primary-foreground);
   border-radius: 9999px;
+}
+
+.fc-compact .fc-daygrid-day-frame {
+  min-height: 2.25rem;
+  padding: 0.125rem;
+}
+
+.fc-compact .fc-daygrid-day-top {
+  justify-content: center;
+}
+
+.fc-compact .fc-daygrid-day-number {
+  float: none;
+  padding: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.fc-compact .fc-col-header-cell-cushion {
+  font-size: 0.75rem;
+  padding: 0.25rem;
+}
+
+.fc-compact .fc-toolbar-title {
+  font-size: 0.9375rem;
+}
+
+.fc-compact .fc-button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
 }

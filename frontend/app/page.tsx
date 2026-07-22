@@ -27,16 +27,19 @@ const steps = [
     icon: Scissors,
     title: "Escolha o serviço",
     description: "Veja duração e preço de cada serviço disponível.",
+    iconClassName: "text-primary",
   },
   {
     icon: CalendarClock,
     title: "Escolha o horário",
     description: "A agenda mostra só os horários realmente livres.",
+    iconClassName: "text-warning",
   },
   {
     icon: CheckCircle2,
     title: "Pronto",
     description: "Acompanhe o status do seu agendamento em tempo real.",
+    iconClassName: "text-success",
   },
 ];
 
@@ -85,7 +88,7 @@ export default async function Home() {
         {steps.map((step) => (
           <Card key={step.title}>
             <CardHeader>
-              <step.icon className="h-6 w-6 text-primary" />
+              <step.icon className={cn("h-6 w-6", step.iconClassName)} />
               <CardTitle className="text-base">{step.title}</CardTitle>
             </CardHeader>
             <CardContent>
