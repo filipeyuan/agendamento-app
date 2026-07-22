@@ -56,6 +56,7 @@ export function Navbar() {
 
           {!isLoading && user?.role === "admin" && (
             <>
+              <NavLink href="/admin/dashboard">Dashboard</NavLink>
               <NavLink href="/admin/servicos">Serviços (admin)</NavLink>
               <NavLink href="/admin/agendamentos">Agendamentos (admin)</NavLink>
               <NavLink href="/admin/horarios">Horários (admin)</NavLink>

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
@@ -43,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/appointments', [AppointmentController::class, 'adminIndex']);
         Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']);
+
+        Route::get('/analytics', [AnalyticsController::class, 'index']);
 
         Route::get('/business-hours', [BusinessHourController::class, 'index']);
         Route::put('/business-hours', [BusinessHourController::class, 'update']);
