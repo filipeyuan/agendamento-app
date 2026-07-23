@@ -2,12 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { DayCellContentArg } from "@fullcalendar/core";
-import ptBrLocale from "@fullcalendar/core/locales/pt-br";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import type { DateClickArg } from "@fullcalendar/interaction";
-import interactionPlugin from "@fullcalendar/interaction";
-import FullCalendar from "@fullcalendar/react";
+import { DayPicker } from "@daypicker/react";
+import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
 import { CalendarCheck, CalendarX } from "lucide-react";
 
@@ -107,21 +103,18 @@ function AgendarForm() {
         <div className="grid gap-6 md:grid-cols-[19rem_1fr]">
           <div>
             <Label>Data</Label>
-            <div className="fc-compact rounded-lg border border-border bg-card p-2 shadow-sm">
-              <FullCalendar
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                headerToolbar={{ left: "prev", center: "title", right: "next" }}
-                locale={ptBrLocale}
-                height="auto"
-                validRange={{ start: todayIsoDate() }}
-                dateClick={(arg: DateClickArg) => {
-                  setDate(toLocalIsoDate(arg.date));
+            <div className="rounded-lg border border-border bg-card p-2 shadow-sm">
+              <DayPicker
+                mode="single"
+                locale={ptBR}
+                selected={new Date(`${date}T00:00:00`)}
+                onSelect={(selectedDate) => {
+                  if (!selectedDate) return;
+                  setDate(toLocalIsoDate(selectedDate));
                   setSelectedSlot(null);
                 }}
-                dayCellClassNames={(arg: DayCellContentArg) =>
-                  toLocalIsoDate(arg.date) === date ? ["selected-date-cell"] : []
-                }
+                disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                showOutsideDays
               />
             </div>
           </div>

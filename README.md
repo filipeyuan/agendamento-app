@@ -36,7 +36,7 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 2**: Docker Compose pra dev local + testes automatizados + CI (GitHub Actions)
 - [x] **Fase 3**: Documentação de API (OpenAPI/Swagger)
 - [x] **Fase 4**: Diferenciais. ~~Calendário visual (FullCalendar)~~, ~~horário de atendimento configurável~~, ~~assistente de agendamento via IA~~, ~~Google Calendar~~
-- [ ] **Fase 5**: Polimento final. ~~Identidade de produto (nome/copy reais)~~, ilustrações e ~~dashboard de analytics~~
+- [x] **Fase 5**: Polimento final. ~~Identidade de produto (nome/copy reais)~~, ~~ilustrações~~ e ~~dashboard de analytics~~
 - [ ] **Fase 6**: Referência visual e mobile. Pesquisar SaaS reais de agendamento/produtividade (paleta de cores, estrutura de home, estilo de componentes) e aplicar o que fizer sentido pro Zelo parecer um produto maduro, não um projeto de estudo. Inclui: badges com mais cor, ícone de cadeado em horário indisponível, ícone de "+" pra adicionar horário, e otimização do modo mobile
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).

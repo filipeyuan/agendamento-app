@@ -11,6 +11,7 @@
     "test:watch": "cross-env TZ=America/Sao_Paulo jest --watch"
   },
   "dependencies": {
+    "@daypicker/react": "^10.0.1",
     "@fullcalendar/core": "^6.1.21",
     "@fullcalendar/daygrid": "^6.1.21",
     "@fullcalendar/interaction": "^6.1.21",
