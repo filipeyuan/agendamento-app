@@ -3,11 +3,11 @@
 import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { CalendarOff, Trash2 } from "lucide-react";
+import { CalendarOff, Lock, Plus, Trash2 } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,6 +27,7 @@ import {
   updateBusinessHours,
 } from "@/lib/api/scheduling";
 import type { BusinessHour } from "@/lib/types/scheduling";
+import { cn } from "@/lib/utils/cn";
 import { formatApiError } from "@/lib/utils/format-error";
 
 const DAY_NAMES = [
@@ -85,14 +86,21 @@ function BusinessHoursEditor({
             {DAY_NAMES[day.day_of_week]}
           </span>
 
-          <Button
+          <button
             type="button"
-            variant={day.is_open ? "secondary" : "outline"}
-            size="sm"
             onClick={() => updateDay(day.day_of_week, { is_open: !day.is_open })}
+            className={cn(
+              badgeVariants({ variant: day.is_open ? "success" : "secondary" }),
+              "cursor-pointer gap-1.5 transition-opacity hover:opacity-80"
+            )}
           >
-            {day.is_open ? "Aberto" : "Fechado"}
-          </Button>
+            {day.is_open ? "Aberto" : (
+              <>
+                <Lock className="h-3 w-3" />
+                Fechado
+              </>
+            )}
+          </button>
 
           {day.is_open && (
             <div className="flex items-center gap-2">
@@ -310,6 +318,7 @@ function ScheduleBlocksCard() {
           </div>
 
           <Button type="submit" disabled={isSubmitting} className="self-start">
+            <Plus className="h-4 w-4" />
             Adicionar bloqueio
           </Button>
         </form>
@@ -335,7 +344,8 @@ function ScheduleBlocksCard() {
               className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                   {new Date(`${block.date}T00:00:00`).toLocaleDateString("pt-BR")}
                   {block.start_time && block.end_time
                     ? ` · ${block.start_time} às ${block.end_time}`
