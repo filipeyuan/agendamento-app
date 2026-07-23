@@ -179,7 +179,7 @@ function ServicosAdminPanel() {
 
         {services?.map((service) => (
           <Card key={service.id}>
-            <CardContent className="flex items-center justify-between gap-4 py-4">
+            <CardContent className="flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-foreground">{service.name}</span>
@@ -192,7 +192,7 @@ function ServicosAdminPanel() {
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => startEdit(service)}>
                   <Pencil className="h-4 w-4" />
                   Editar

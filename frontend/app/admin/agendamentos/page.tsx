@@ -159,7 +159,7 @@ function AgendamentosAdminPanel() {
         </Select>
       </div>
 
-      <Card>
+      <Card className="shadow-md">
         <CardContent className="py-4">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}

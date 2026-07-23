@@ -5,12 +5,14 @@ import useSWR from "swr";
 import { CalendarCheck2, DollarSign, TrendingDown, Users, type LucideIcon } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
+import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { getAnalyticsSummary } from "@/lib/api/analytics";
 import type { AnalyticsSummary } from "@/lib/types/analytics";
 import { APPOINTMENT_STATUS_LABEL, type AppointmentStatus } from "@/lib/types/appointments";
+import { formatApiError } from "@/lib/utils/format-error";
 
 const STATUS_ORDER: AppointmentStatus[] = ["pending", "confirmed", "completed", "cancelled"];
 
@@ -132,7 +134,7 @@ function TopServices({ services }: { services: AnalyticsSummary["top_services"] 
 
 function DashboardPanel() {
   const [days, setDays] = useState(30);
-  const { data, isLoading } = useSWR(["analytics", days], () => getAnalyticsSummary(days));
+  const { data, error, isLoading } = useSWR(["analytics", days], () => getAnalyticsSummary(days));
 
   const totalAppointments = useMemo(
     () => (data ? Object.values(data.by_status).reduce((sum, n) => sum + n, 0) : 0),
@@ -162,6 +164,12 @@ function DashboardPanel() {
         <div className="flex justify-center py-16">
           <Spinner className="h-6 w-6 text-muted-foreground" />
         </div>
+      )}
+
+      {error && !isLoading && (
+        <Alert variant="destructive">
+          {formatApiError(error)} Se você entrou há um tempo, tente sair e entrar de novo.
+        </Alert>
       )}
 
       {data && (
