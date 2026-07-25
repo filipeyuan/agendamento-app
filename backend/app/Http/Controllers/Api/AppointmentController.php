@@ -9,17 +9,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentStatusRequest;
 use App\Http\Resources\AppointmentResource;
+use App\Mail\AppointmentCancelledMail;
+use App\Mail\AppointmentConfirmedMail;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\BookingService;
 use App\Services\GoogleCalendarService;
+use App\Services\StripeService;
 use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Response as DocumentedResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class AppointmentController extends Controller
 {
@@ -91,7 +98,7 @@ class AppointmentController extends Controller
         type: 'array{message: string}',
         examples: [['message' => 'Esse horário acabou de ser ocupado. Escolha outro horário.']],
     )]
-    public function store(StoreAppointmentRequest $request, BookingService $bookingService): JsonResponse
+    public function store(StoreAppointmentRequest $request, BookingService $bookingService, StripeService $stripe): JsonResponse
     {
         $user = $request->user();
         abort_if(! $user instanceof User, 401);
@@ -106,7 +113,19 @@ class AppointmentController extends Controller
             notes: $request->validated('notes'),
         );
 
-        return AppointmentResource::make($appointment->load('service'))->response()->setStatusCode(201);
+        try {
+            $checkout = $stripe->createCheckoutSession($appointment->load(['service', 'user']));
+        } catch (Throwable $e) {
+            $appointment->delete();
+            throw $e;
+        }
+
+        $appointment->update(['stripe_checkout_session_id' => $checkout['id']]);
+
+        return AppointmentResource::make($appointment)
+            ->additional(['checkout_url' => $checkout['url']])
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -129,17 +148,40 @@ class AppointmentController extends Controller
             'confirmed_by' => $user->id,
         ]);
 
-        if ($newStatus === AppointmentStatus::Confirmed && ! $appointment->google_event_id) {
-            $appointment->update([
-                'google_event_id' => $googleCalendar->createEvent($appointment->load(['service', 'user'])),
+        $appointment->loadMissing(['service', 'user']);
+
+        if ($newStatus === AppointmentStatus::Confirmed) {
+            if (! $appointment->google_event_id) {
+                $appointment->update([
+                    'google_event_id' => $googleCalendar->createEvent($appointment),
+                ]);
+            }
+
+            $this->sendMailSafely($appointment, new AppointmentConfirmedMail($appointment));
+        }
+
+        if ($newStatus === AppointmentStatus::Cancelled) {
+            if ($appointment->google_event_id) {
+                $googleCalendar->deleteEvent($appointment->google_event_id);
+                $appointment->update(['google_event_id' => null]);
+            }
+
+            $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
+        }
+
+        return AppointmentResource::make($appointment);
+    }
+
+    private function sendMailSafely(Appointment $appointment, Mailable $mailable): void
+    {
+        try {
+            Mail::to($appointment->user->email)->send($mailable);
+        } catch (Throwable $e) {
+            Log::warning('Falha ao enviar e-mail de status de agendamento.', [
+                'appointment_id' => $appointment->id,
+                'mailable' => $mailable::class,
+                'message' => $e->getMessage(),
             ]);
         }
-
-        if ($newStatus === AppointmentStatus::Cancelled && $appointment->google_event_id) {
-            $googleCalendar->deleteEvent($appointment->google_event_id);
-            $appointment->update(['google_event_id' => null]);
-        }
-
-        return AppointmentResource::make($appointment->load('service'));
     }
 }

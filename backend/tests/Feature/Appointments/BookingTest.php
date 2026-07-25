@@ -32,6 +32,13 @@ class BookingTest extends TestCase
     #[Test]
     public function an_authenticated_client_can_book_an_available_slot(): void
     {
+        Http::fake([
+            'api.stripe.com/*' => Http::response([
+                'id' => 'cs_test_123',
+                'url' => 'https://checkout.stripe.com/pay/cs_test_123',
+            ]),
+        ]);
+
         $client = User::factory()->create();
         $service = Service::factory()->create(['duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
@@ -44,9 +51,12 @@ class BookingTest extends TestCase
 
         $response->assertCreated();
         $response->assertJsonPath('data.status', AppointmentStatus::Pending->value);
+        $response->assertJsonPath('checkout_url', 'https://checkout.stripe.com/pay/cs_test_123');
         $this->assertDatabaseHas('appointments', [
             'user_id' => $client->id,
             'service_id' => $service->id,
+            'payment_status' => 'pending',
+            'stripe_checkout_session_id' => 'cs_test_123',
         ]);
     }
 
@@ -70,6 +80,29 @@ class BookingTest extends TestCase
         ]);
 
         $response->assertStatus(409);
+    }
+
+    #[Test]
+    public function booking_deletes_the_appointment_when_stripe_checkout_fails(): void
+    {
+        Http::fake([
+            'api.stripe.com/*' => Http::response(['error' => ['message' => 'invalid key']], 400),
+        ]);
+
+        $client = User::factory()->create();
+        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $startAt = now()->addDay()->setTime(10, 0);
+
+        $response = $this->actingAs($client)->postJson('/api/appointments', [
+            'service_id' => $service->id,
+            'start_at' => $startAt->toIso8601String(),
+        ]);
+
+        $response->assertStatus(502);
+        $this->assertDatabaseMissing('appointments', [
+            'user_id' => $client->id,
+            'service_id' => $service->id,
+        ]);
     }
 
     #[Test]

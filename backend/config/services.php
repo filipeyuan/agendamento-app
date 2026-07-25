@@ -48,4 +48,10 @@ return [
         'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET_KEY'),
+        'publishable' => env('STRIPE_PUBLISHABLE_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
 ];

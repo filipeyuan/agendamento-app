@@ -10,11 +10,14 @@ export async function createAppointment(payload: {
   start_at: string;
   notes?: string;
 }) {
-  const { data } = await apiRequest<ApiResource<Appointment>>("/appointments", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  return data;
+  const { data, checkout_url } = await apiRequest<ApiResource<Appointment> & { checkout_url: string }>(
+    "/appointments",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+  return { appointment: data, checkoutUrl: checkout_url };
 }
 
 export async function myAppointments() {

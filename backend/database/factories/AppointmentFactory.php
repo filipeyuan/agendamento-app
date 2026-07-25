@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\AppointmentSource;
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
@@ -32,6 +33,7 @@ class AppointmentFactory extends Factory
             'start_at' => $startAt,
             'end_at' => $endAt,
             'status' => AppointmentStatus::Pending,
+            'payment_status' => PaymentStatus::Paid,
             'source' => AppointmentSource::Web,
             'notes' => null,
         ];

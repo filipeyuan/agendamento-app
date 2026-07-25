@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\AppointmentSource;
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use Carbon\Carbon;
 use Database\Factories\AppointmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,10 +20,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon $end_at
  * @property AppointmentStatus $status
  * @property AppointmentSource $source
+ * @property PaymentStatus $payment_status
  * @property-read User $user
  * @property-read Service $service
  */
-#[Fillable(['user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes', 'google_event_id'])]
+#[Fillable([
+    'user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes',
+    'google_event_id', 'payment_status', 'stripe_checkout_session_id',
+])]
 class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
@@ -83,6 +88,7 @@ class Appointment extends Model
             'end_at' => 'datetime',
             'status' => AppointmentStatus::class,
             'source' => AppointmentSource::class,
+            'payment_status' => PaymentStatus::class,
         ];
     }
 }

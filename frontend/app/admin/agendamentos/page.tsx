@@ -23,6 +23,8 @@ import { toLocalIsoDate } from "@/lib/utils/date";
 import {
   APPOINTMENT_STATUS_BADGE_VARIANT,
   APPOINTMENT_STATUS_LABEL,
+  PAYMENT_STATUS_BADGE_VARIANT,
+  PAYMENT_STATUS_LABEL,
   type Appointment,
   type AppointmentStatus,
 } from "@/lib/types/appointments";
@@ -53,6 +55,9 @@ function AppointmentDetail({
             <span className="font-medium text-foreground">{appointment.service.name}</span>
             <Badge variant={APPOINTMENT_STATUS_BADGE_VARIANT[appointment.status]}>
               {APPOINTMENT_STATUS_LABEL[appointment.status]}
+            </Badge>
+            <Badge variant={PAYMENT_STATUS_BADGE_VARIANT[appointment.payment_status]}>
+              {PAYMENT_STATUS_LABEL[appointment.payment_status]}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
