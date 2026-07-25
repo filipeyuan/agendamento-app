@@ -6,11 +6,14 @@ namespace Tests\Feature\Appointments;
 
 use App\Enums\AppointmentStatus;
 use App\Enums\UserRole;
+use App\Mail\AppointmentCancelledMail;
+use App\Mail\AppointmentConfirmedMail;
 use App\Models\Appointment;
 use App\Models\GoogleCalendarConnection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -21,6 +24,8 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function admin_can_confirm_an_appointment(): void
     {
+        Mail::fake();
+
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
 
@@ -35,6 +40,23 @@ class AppointmentStatusTest extends TestCase
             'status' => AppointmentStatus::Confirmed->value,
             'confirmed_by' => $admin->id,
         ]);
+        Mail::assertSent(AppointmentConfirmedMail::class, fn ($mail) => $mail->appointment->id === $appointment->id);
+    }
+
+    #[Test]
+    public function cancelling_an_appointment_sends_a_cancellation_email(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
+
+        $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
+            'status' => AppointmentStatus::Cancelled->value,
+        ]);
+
+        $response->assertOk();
+        Mail::assertSent(AppointmentCancelledMail::class, fn ($mail) => $mail->appointment->id === $appointment->id);
     }
 
     #[Test]

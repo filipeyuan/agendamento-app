@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -23,6 +24,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}/available-slots', [AppointmentController::class, 'availableSlots']);

@@ -6,6 +6,7 @@ import AgendarPage from "@/app/agendar/page";
 import { ApiError } from "@/lib/api/client";
 import { createAppointment } from "@/lib/api/appointments";
 import { availableSlots, listServices } from "@/lib/api/services";
+import { redirectTo } from "@/lib/utils/navigate";
 
 jest.mock("@/components/auth/require-auth.component", () => ({
   RequireAuth: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -13,16 +14,16 @@ jest.mock("@/components/auth/require-auth.component", () => ({
 
 jest.mock("@/lib/api/services");
 jest.mock("@/lib/api/appointments");
+jest.mock("@/lib/utils/navigate");
 
-const push = jest.fn();
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
 const mockedListServices = jest.mocked(listServices);
 const mockedAvailableSlots = jest.mocked(availableSlots);
 const mockedCreateAppointment = jest.mocked(createAppointment);
+const mockedRedirectTo = jest.mocked(redirectTo);
 
 function renderPage() {
   return render(
@@ -59,14 +60,17 @@ describe("AgendarPage", () => {
     expect(screen.getByText("10:30")).toBeInTheDocument();
   });
 
-  it("books the selected slot and redirects to my appointments", async () => {
-    mockedCreateAppointment.mockResolvedValue({} as Awaited<ReturnType<typeof createAppointment>>);
+  it("books the selected slot and redirects to the Stripe checkout", async () => {
+    mockedCreateAppointment.mockResolvedValue({
+      appointment: {} as Awaited<ReturnType<typeof createAppointment>>["appointment"],
+      checkoutUrl: "https://checkout.stripe.com/pay/cs_test_123",
+    });
     const user = userEvent.setup();
 
     renderPage();
 
     await user.click(await screen.findByText("10:00"));
-    await user.click(screen.getByRole("button", { name: /confirmar agendamento/i }));
+    await user.click(screen.getByRole("button", { name: /pagar e agendar/i }));
 
     await waitFor(() => {
       expect(mockedCreateAppointment).toHaveBeenCalledWith({
@@ -75,7 +79,9 @@ describe("AgendarPage", () => {
         notes: undefined,
       });
     });
-    expect(push).toHaveBeenCalledWith("/meus-agendamentos");
+    await waitFor(() => {
+      expect(mockedRedirectTo).toHaveBeenCalledWith("https://checkout.stripe.com/pay/cs_test_123");
+    });
   });
 
   it("shows an error and clears the selected slot when the booking conflicts", async () => {
@@ -87,10 +93,10 @@ describe("AgendarPage", () => {
     renderPage();
 
     await user.click(await screen.findByText("10:00"));
-    await user.click(screen.getByRole("button", { name: /confirmar agendamento/i }));
+    await user.click(screen.getByRole("button", { name: /pagar e agendar/i }));
 
     expect(await screen.findByText(/esse horário acabou de ser ocupado/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /confirmar agendamento/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /pagar e agendar/i })).toBeDisabled();
   });
 
   it("shows a message and no slot buttons when there are no free slots", async () => {

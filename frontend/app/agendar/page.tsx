@@ -1,11 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
-import { CalendarCheck, CalendarX } from "lucide-react";
+import { CalendarX, CreditCard } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
@@ -19,14 +19,18 @@ import { availableSlots as fetchAvailableSlots, listServices } from "@/lib/api/s
 import { cn } from "@/lib/utils/cn";
 import { toLocalIsoDate, todayIsoDate } from "@/lib/utils/date";
 import { formatApiError } from "@/lib/utils/format-error";
+import { redirectTo } from "@/lib/utils/navigate";
 
 function formatSlotTime(iso: string) {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatPrice(price: number) {
+  return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 function AgendarForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const { data: services } = useSWR("services", listServices);
 
@@ -59,12 +63,12 @@ function AgendarForm() {
     setError(null);
 
     try {
-      await createAppointment({
+      const { checkoutUrl } = await createAppointment({
         service_id: Number(serviceId),
         start_at: validSelectedSlot,
         notes: notes || undefined,
       });
-      router.push("/meus-agendamentos");
+      redirectTo(checkoutUrl);
     } catch (err) {
       setError(formatApiError(err));
       setSelectedSlot(null);
@@ -81,6 +85,9 @@ function AgendarForm() {
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {error && <Alert variant="destructive">{error}</Alert>}
+        {searchParams.get("payment") === "cancelled" && (
+          <Alert variant="destructive">Pagamento cancelado. Escolha um horário e tente de novo.</Alert>
+        )}
 
         <div>
           <Label htmlFor="service">Serviço</Label>
@@ -94,7 +101,7 @@ function AgendarForm() {
           >
             {services?.map((service) => (
               <option key={service.id} value={service.id}>
-                {service.name} ({service.duration_minutes} min)
+                {service.name} ({service.duration_minutes} min) · {formatPrice(service.price)}
               </option>
             ))}
           </Select>
@@ -155,8 +162,8 @@ function AgendarForm() {
             </div>
 
             <Button disabled={!validSelectedSlot || isSubmitting} onClick={handleSubmit}>
-              <CalendarCheck className="h-4 w-4" />
-              {isSubmitting ? "Agendando..." : "Confirmar agendamento"}
+              <CreditCard className="h-4 w-4" />
+              {isSubmitting ? "Redirecionando pro pagamento..." : "Pagar e agendar"}
             </Button>
           </div>
         </div>
