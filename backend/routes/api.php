@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\GoogleCalendarController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StripeWebhookController;
@@ -37,6 +38,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/appointments/mine', [AppointmentController::class, 'mine']);
 
     Route::post('/assistant/chat', [AssistantController::class, 'chat']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
 
     Route::prefix('admin')->group(function () {
         Route::get('/services', [ServiceController::class, 'adminIndex']);

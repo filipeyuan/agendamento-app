@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Mail\PaymentConfirmedMail;
 use App\Models\Appointment;
+use App\Notifications\PaymentConfirmedNotification;
 use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -66,13 +67,21 @@ class StripeWebhookController extends Controller
         }
 
         $appointment->update(['payment_status' => PaymentStatus::Paid]);
+        $appointment->load(['service', 'user']);
 
         try {
-            Mail::to($appointment->user->email)->send(
-                new PaymentConfirmedMail($appointment->load(['service', 'user']))
-            );
+            Mail::to($appointment->user->email)->send(new PaymentConfirmedMail($appointment));
         } catch (Throwable $e) {
             Log::warning('Falha ao enviar e-mail de pagamento confirmado.', [
+                'appointment_id' => $appointment->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            $appointment->user->notify(new PaymentConfirmedNotification($appointment));
+        } catch (Throwable $e) {
+            Log::warning('Falha ao criar notificação de pagamento confirmado.', [
                 'appointment_id' => $appointment->id,
                 'message' => $e->getMessage(),
             ]);
