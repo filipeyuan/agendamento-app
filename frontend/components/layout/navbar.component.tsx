@@ -3,15 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import {
+  CalendarCheck2,
+  CalendarPlus,
+  CalendarRange,
+  Clock,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Menu,
+  Settings2,
+  Sparkles,
+  Store,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Logo } from "@/components/layout/logo.component";
+import { NotificationBell } from "@/components/layout/notification-bell.component";
 import { ThemeToggle } from "@/components/layout/theme-toggle.component";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils/cn";
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({
+  href,
+  icon: Icon,
+  children,
+}: {
+  href: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const isActive = pathname === href;
 
@@ -19,10 +42,11 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link
       href={href}
       className={cn(
-        "rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
         isActive && "bg-accent text-foreground"
       )}
     >
+      <Icon className="h-4 w-4" />
       {children}
     </Link>
   );
@@ -47,26 +71,47 @@ export function Navbar() {
 
   const navLinks = (
     <>
-      <NavLink href="/servicos">Serviços</NavLink>
+      <NavLink href="/servicos" icon={Store}>
+        Serviços
+      </NavLink>
 
       {!isLoading && user?.role === "client" && (
         <>
-          <NavLink href="/agendar">Agendar</NavLink>
-          <NavLink href="/assistente">Assistente (IA)</NavLink>
-          <NavLink href="/meus-agendamentos">Meus agendamentos</NavLink>
+          <NavLink href="/agendar" icon={CalendarPlus}>
+            Agendar
+          </NavLink>
+          <NavLink href="/assistente" icon={Sparkles}>
+            Assistente
+          </NavLink>
+          <NavLink href="/meus-agendamentos" icon={CalendarCheck2}>
+            Meus agendamentos
+          </NavLink>
         </>
       )}
 
       {!isLoading && user?.role === "admin" && (
         <>
-          <NavLink href="/admin/dashboard">Dashboard</NavLink>
-          <NavLink href="/admin/servicos">Serviços (admin)</NavLink>
-          <NavLink href="/admin/agendamentos">Agendamentos (admin)</NavLink>
-          <NavLink href="/admin/horarios">Horários (admin)</NavLink>
+          <div className="mx-1 hidden h-5 w-px bg-border md:block" aria-hidden />
+          <NavLink href="/admin/dashboard" icon={LayoutDashboard}>
+            Dashboard
+          </NavLink>
+          <NavLink href="/admin/servicos" icon={Settings2}>
+            Serviços
+          </NavLink>
+          <NavLink href="/admin/agendamentos" icon={CalendarRange}>
+            Agendamentos
+          </NavLink>
+          <NavLink href="/admin/horarios" icon={Clock}>
+            Horários
+          </NavLink>
         </>
       )}
 
-      {!isLoading && !user && <NavLink href="/login">Entrar</NavLink>}
+      {!isLoading && !user && (
+        <NavLink href="/login" icon={LogIn}>
+          Entrar
+        </NavLink>
+      )}
     </>
   );
 
@@ -81,25 +126,27 @@ export function Navbar() {
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks}
 
-          <div className="ml-2 flex items-center gap-2 border-l border-border pl-3">
+          <div className="ml-2 flex items-center gap-1 border-l border-border pl-3">
+            <NotificationBell />
             <ThemeToggle />
 
             {!isLoading && user && (
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="ml-1">
                 <LogOut className="h-4 w-4" />
                 Sair
               </Button>
             )}
 
             {!isLoading && !user && (
-              <Link href="/cadastro" className={buttonVariants({ size: "sm" })}>
+              <Link href="/cadastro" className={cn(buttonVariants({ size: "sm" }), "ml-1")}>
                 Cadastrar
               </Link>
             )}
           </div>
         </nav>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
+          <NotificationBell />
           <ThemeToggle />
           <button
             type="button"

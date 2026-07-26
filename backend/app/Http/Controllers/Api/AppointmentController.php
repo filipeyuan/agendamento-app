@@ -14,6 +14,8 @@ use App\Mail\AppointmentConfirmedMail;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
+use App\Notifications\AppointmentCancelledNotification;
+use App\Notifications\AppointmentConfirmedNotification;
 use App\Services\BookingService;
 use App\Services\GoogleCalendarService;
 use App\Services\StripeService;
@@ -23,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Mail\Mailable;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
@@ -158,6 +161,7 @@ class AppointmentController extends Controller
             }
 
             $this->sendMailSafely($appointment, new AppointmentConfirmedMail($appointment));
+            $this->notifySafely($appointment, new AppointmentConfirmedNotification($appointment));
         }
 
         if ($newStatus === AppointmentStatus::Cancelled) {
@@ -167,6 +171,7 @@ class AppointmentController extends Controller
             }
 
             $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
+            $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));
         }
 
         return AppointmentResource::make($appointment);
@@ -180,6 +185,19 @@ class AppointmentController extends Controller
             Log::warning('Falha ao enviar e-mail de status de agendamento.', [
                 'appointment_id' => $appointment->id,
                 'mailable' => $mailable::class,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function notifySafely(Appointment $appointment, Notification $notification): void
+    {
+        try {
+            $appointment->user->notify($notification);
+        } catch (Throwable $e) {
+            Log::warning('Falha ao criar notificação de status de agendamento.', [
+                'appointment_id' => $appointment->id,
+                'notification' => $notification::class,
                 'message' => $e->getMessage(),
             ]);
         }
