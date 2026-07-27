@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\AppointmentSource;
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use App\Exceptions\AppointmentConflictException;
 use App\Models\Appointment;
 use App\Models\BusinessHour;
@@ -91,6 +92,7 @@ class BookingService
                 'start_at' => $startAt,
                 'end_at' => $endAt,
                 'status' => AppointmentStatus::Pending,
+                'payment_status' => PaymentStatus::Pending,
                 'source' => $source,
                 'notes' => $notes,
             ]);

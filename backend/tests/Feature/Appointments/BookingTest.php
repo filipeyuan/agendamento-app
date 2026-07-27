@@ -51,6 +51,7 @@ class BookingTest extends TestCase
 
         $response->assertCreated();
         $response->assertJsonPath('data.status', AppointmentStatus::Pending->value);
+        $response->assertJsonPath('data.payment_status', 'pending');
         $response->assertJsonPath('checkout_url', 'https://checkout.stripe.com/pay/cs_test_123');
         $this->assertDatabaseHas('appointments', [
             'user_id' => $client->id,
