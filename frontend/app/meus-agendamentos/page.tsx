@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { cancelAppointment, myAppointments, rescheduleAppointment } from "@/lib/api/appointments";
 import { availableSlots as fetchAvailableSlots } from "@/lib/api/services";
@@ -22,10 +24,19 @@ import {
   PAYMENT_STATUS_BADGE_VARIANT,
   PAYMENT_STATUS_LABEL,
   type Appointment,
+  type AppointmentStatus,
 } from "@/lib/types/appointments";
 import { cn } from "@/lib/utils/cn";
 import { toLocalIsoDate, todayIsoDate } from "@/lib/utils/date";
 import { formatApiError } from "@/lib/utils/format-error";
+
+type Scope = "upcoming" | "past" | "all";
+
+const SCOPE_LABEL: Record<Scope, string> = {
+  upcoming: "Próximos",
+  past: "Passados",
+  all: "Todos",
+};
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -133,9 +144,15 @@ function RescheduleForm({ appointment, onDone }: { appointment: Appointment; onD
 }
 
 function MeusAgendamentosList() {
-  const { data: appointments, isLoading, mutate: reloadAppointments } = useSWR(
-    "my-appointments",
-    myAppointments
+  const [scope, setScope] = useState<Scope>("upcoming");
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "">("");
+
+  const {
+    data: appointments,
+    isLoading,
+    mutate: reloadAppointments,
+  } = useSWR(["my-appointments", scope, statusFilter], () =>
+    myAppointments({ scope, status: statusFilter || undefined })
   );
   const [reschedulingId, setReschedulingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -153,26 +170,71 @@ function MeusAgendamentosList() {
     }
   }
 
+  const filters = (
+    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex gap-1 rounded-md border border-border bg-muted/40 p-1">
+        {(Object.keys(SCOPE_LABEL) as Scope[]).map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setScope(option)}
+            className={cn(
+              "rounded px-3 py-1 text-sm font-medium transition-colors",
+              scope === option
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {SCOPE_LABEL[option]}
+          </button>
+        ))}
+      </div>
+
+      <div className="w-full sm:w-48">
+        <Label htmlFor="status-filter">Status</Label>
+        <Select
+          id="status-filter"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as AppointmentStatus | "")}
+        >
+          <option value="">Todos os status</option>
+          {Object.entries(APPOINTMENT_STATUS_LABEL).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Spinner className="h-6 w-6 text-muted-foreground" />
-      </div>
+      <>
+        {filters}
+        <div className="flex justify-center py-16">
+          <Spinner className="h-6 w-6 text-muted-foreground" />
+        </div>
+      </>
     );
   }
 
   if (!appointments || appointments.length === 0) {
     return (
-      <EmptyState
-        icon={CalendarX2}
-        title="Você ainda não tem agendamentos"
-        description="Escolha um serviço e marque um horário pra começar."
-      />
+      <>
+        {filters}
+        <EmptyState
+          icon={CalendarX2}
+          title="Nenhum agendamento por aqui"
+          description="Ajuste os filtros acima ou escolha um serviço pra marcar um horário."
+        />
+      </>
     );
   }
 
   return (
     <div className="flex flex-col gap-3">
+      {filters}
       {error && <Alert variant="destructive">{error}</Alert>}
 
       {appointments.map((appointment) => {

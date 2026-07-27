@@ -33,8 +33,16 @@ export async function rescheduleAppointment(id: number, startAt: string) {
   return data;
 }
 
-export async function myAppointments() {
-  const { data } = await apiRequest<ApiResource<Appointment[]>>("/appointments/mine");
+export async function myAppointments(filters?: {
+  scope?: "upcoming" | "past" | "all";
+  status?: AppointmentStatus;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.scope) params.set("scope", filters.scope);
+  if (filters?.status) params.set("status", filters.status);
+  const query = params.toString() ? `?${params.toString()}` : "";
+
+  const { data } = await apiRequest<ApiResource<Appointment[]>>(`/appointments/mine${query}`);
   return data;
 }
 

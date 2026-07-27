@@ -135,6 +135,59 @@ class BookingTest extends TestCase
     }
 
     #[Test]
+    public function my_appointments_defaults_to_upcoming_only(): void
+    {
+        $client = User::factory()->create();
+
+        Appointment::factory()->create(['user_id' => $client->id, 'start_at' => now()->subWeek(), 'end_at' => now()->subWeek()->addMinutes(30)]);
+        Appointment::factory()->create(['user_id' => $client->id, 'start_at' => now()->addWeek(), 'end_at' => now()->addWeek()->addMinutes(30)]);
+
+        $response = $this->actingAs($client)->getJson('/api/appointments/mine');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+    }
+
+    #[Test]
+    public function my_appointments_can_include_the_past_with_scope_all(): void
+    {
+        $client = User::factory()->create();
+
+        Appointment::factory()->create(['user_id' => $client->id, 'start_at' => now()->subWeek(), 'end_at' => now()->subWeek()->addMinutes(30)]);
+        Appointment::factory()->create(['user_id' => $client->id, 'start_at' => now()->addWeek(), 'end_at' => now()->addWeek()->addMinutes(30)]);
+
+        $response = $this->actingAs($client)->getJson('/api/appointments/mine?scope=all');
+
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function my_appointments_can_be_filtered_by_status(): void
+    {
+        $client = User::factory()->create();
+
+        Appointment::factory()->create([
+            'user_id' => $client->id,
+            'status' => AppointmentStatus::Confirmed,
+            'start_at' => now()->addWeek(),
+            'end_at' => now()->addWeek()->addMinutes(30),
+        ]);
+        Appointment::factory()->create([
+            'user_id' => $client->id,
+            'status' => AppointmentStatus::Pending,
+            'start_at' => now()->addWeek(),
+            'end_at' => now()->addWeek()->addMinutes(30),
+        ]);
+
+        $response = $this->actingAs($client)->getJson('/api/appointments/mine?status=confirmed');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.status', AppointmentStatus::Confirmed->value);
+    }
+
+    #[Test]
     public function available_slots_exclude_already_booked_times(): void
     {
         $service = Service::factory()->create(['duration_minutes' => 30]);
