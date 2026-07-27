@@ -30,7 +30,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
 - **IA:** Google Gemini (function calling)
 - **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional)
-- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 81 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 84 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
 
 ## Deploy
 

@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // conexão como HTTP puro pro container. Sem confiar nesse proxy, o
         // Laravel acha que a conexão é HTTP e gera URLs absolutas erradas.
         $middleware->trustProxies(at: '*');
+
+        // Laravel 11+ não aplica throttle nas rotas de API por padrão, então sem isso
+        // toda rota (login, cadastro, assistente de IA) fica sem limite de requisições.
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

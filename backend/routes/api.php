@@ -21,8 +21,10 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
@@ -39,7 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
     Route::patch('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule']);
 
-    Route::post('/assistant/chat', [AssistantController::class, 'chat']);
+    Route::post('/assistant/chat', [AssistantController::class, 'chat'])->middleware('throttle:assistant');
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
