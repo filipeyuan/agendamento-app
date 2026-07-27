@@ -44,10 +44,20 @@ class AppointmentController extends Controller
         $user = $request->user();
         abort_if(! $user instanceof User, 401);
 
+        $request->validate([
+            'status' => ['sometimes', Rule::enum(AppointmentStatus::class)],
+            'scope' => ['sometimes', Rule::in(['upcoming', 'past', 'all'])],
+        ]);
+
+        $scope = $request->string('scope', 'upcoming')->toString();
+
         $appointments = $user
             ->appointments()
             ->with('service')
-            ->orderByDesc('start_at')
+            ->when($request->status, fn ($query, $status) => $query->where('status', $status))
+            ->when($scope === 'upcoming', fn ($query) => $query->where('start_at', '>=', now()))
+            ->when($scope === 'past', fn ($query) => $query->where('start_at', '<', now()))
+            ->orderBy('start_at', $scope === 'past' ? 'desc' : 'asc')
             ->get();
 
         return AppointmentResource::collection($appointments);
