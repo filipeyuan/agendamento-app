@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Api;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Mail\PaymentConfirmedMail;
+use App\Mail\RecurringPaymentConfirmedMail;
 use App\Models\Appointment;
 use App\Notifications\PaymentConfirmedNotification;
+use App\Notifications\RecurringPaymentConfirmedNotification;
 use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -43,55 +46,80 @@ class StripeWebhookController extends Controller
             return response()->json(['received' => true]);
         }
 
-        $appointment = Appointment::query()
+        $appointments = Appointment::query()
             ->where('stripe_checkout_session_id', $sessionId)
-            ->first();
+            ->with(['service', 'user'])
+            ->get();
 
-        if (! $appointment) {
+        if ($appointments->isEmpty()) {
             return response()->json(['received' => true]);
         }
 
         match ($event['type'] ?? null) {
-            'checkout.session.completed' => $this->markAsPaid($appointment),
-            'checkout.session.expired' => $this->releaseUnpaidSlot($appointment),
+            'checkout.session.completed' => $this->markAsPaid($appointments),
+            'checkout.session.expired' => $this->releaseUnpaidSlots($appointments),
             default => null,
         };
 
         return response()->json(['received' => true]);
     }
 
-    private function markAsPaid(Appointment $appointment): void
+    /**
+     * @param  Collection<int, Appointment>  $appointments
+     */
+    private function markAsPaid(Collection $appointments): void
     {
-        if ($appointment->payment_status === PaymentStatus::Paid) {
+        $unpaid = $appointments->filter(fn (Appointment $appointment) => $appointment->payment_status === PaymentStatus::Pending);
+
+        if ($unpaid->isEmpty()) {
             return;
         }
 
-        $appointment->update(['payment_status' => PaymentStatus::Paid]);
-        $appointment->load(['service', 'user']);
+        Appointment::query()
+            ->whereIn('id', $unpaid->pluck('id'))
+            ->update(['payment_status' => PaymentStatus::Paid]);
+
+        /** @var Appointment $first */
+        $first = $unpaid->first();
 
         try {
-            Mail::to($appointment->user->email)->send(new PaymentConfirmedMail($appointment));
+            if ($unpaid->count() > 1) {
+                Mail::to($first->user->email)->send(new RecurringPaymentConfirmedMail($unpaid));
+            } else {
+                Mail::to($first->user->email)->send(new PaymentConfirmedMail($first));
+            }
         } catch (Throwable $e) {
             Log::warning('Falha ao enviar e-mail de pagamento confirmado.', [
-                'appointment_id' => $appointment->id,
+                'appointment_ids' => $unpaid->pluck('id')->all(),
                 'message' => $e->getMessage(),
             ]);
         }
 
         try {
-            $appointment->user->notify(new PaymentConfirmedNotification($appointment));
+            if ($unpaid->count() > 1) {
+                $first->user->notify(new RecurringPaymentConfirmedNotification($unpaid));
+            } else {
+                $first->user->notify(new PaymentConfirmedNotification($first));
+            }
         } catch (Throwable $e) {
             Log::warning('Falha ao criar notificação de pagamento confirmado.', [
-                'appointment_id' => $appointment->id,
+                'appointment_ids' => $unpaid->pluck('id')->all(),
                 'message' => $e->getMessage(),
             ]);
         }
     }
 
-    private function releaseUnpaidSlot(Appointment $appointment): void
+    /**
+     * @param  Collection<int, Appointment>  $appointments
+     */
+    private function releaseUnpaidSlots(Collection $appointments): void
     {
-        if ($appointment->payment_status === PaymentStatus::Pending) {
-            $appointment->delete();
+        $stillPending = $appointments->filter(fn (Appointment $appointment) => $appointment->payment_status === PaymentStatus::Pending);
+
+        if ($stillPending->isEmpty()) {
+            return;
         }
+
+        Appointment::query()->whereIn('id', $stillPending->pluck('id'))->delete();
     }
 }

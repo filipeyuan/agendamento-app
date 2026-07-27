@@ -9,7 +9,7 @@ import listPlugin from "@fullcalendar/list";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import useSWR from "swr";
-import { Check, CheckCheck, MousePointerClick, X } from "lucide-react";
+import { Check, CheckCheck, MousePointerClick, Repeat, X } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +59,9 @@ function AppointmentDetail({
             <Badge variant={PAYMENT_STATUS_BADGE_VARIANT[appointment.payment_status]}>
               {PAYMENT_STATUS_LABEL[appointment.payment_status]}
             </Badge>
+            {appointment.recurring_group_id && (
+              <Repeat className="h-3.5 w-3.5 text-muted-foreground" aria-label="Agendamento recorrente" />
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             {formatDateTime(appointment.start_at)} · {appointment.client?.name} (
@@ -141,6 +144,10 @@ function AgendamentosAdminPanel() {
   }
 
   async function handleStatusChange(appointment: Appointment, newStatus: AppointmentStatus) {
+    if (newStatus === "cancelled" && !confirm(`Cancelar o agendamento de ${appointment.service.name}?`)) {
+      return;
+    }
+
     await updateAppointmentStatus(appointment.id, newStatus);
     reloadAppointments();
   }

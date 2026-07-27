@@ -62,7 +62,6 @@ describe("AgendarPage", () => {
 
   it("books the selected slot and redirects to the Stripe checkout", async () => {
     mockedCreateAppointment.mockResolvedValue({
-      appointment: {} as Awaited<ReturnType<typeof createAppointment>>["appointment"],
       checkoutUrl: "https://checkout.stripe.com/pay/cs_test_123",
     });
     const user = userEvent.setup();

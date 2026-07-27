@@ -2,17 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
-import { Bell, Calendar, CalendarX2, CheckCheck, CreditCard, type LucideIcon } from "lucide-react";
+import { Bell, Calendar, CalendarClock, CalendarX2, CheckCheck, CreditCard, type LucideIcon } from "lucide-react";
 
 import { listNotifications, markAllNotificationsRead, markNotificationRead } from "@/lib/api/notifications";
 import { useAuth } from "@/lib/auth/context";
 import type { AppNotification, NotificationType } from "@/lib/types/notifications";
 import { cn } from "@/lib/utils/cn";
+import { formatApiError } from "@/lib/utils/format-error";
 
 const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   payment_confirmed: CreditCard,
   appointment_confirmed: Calendar,
   appointment_cancelled: CalendarX2,
+  appointment_rescheduled: CalendarClock,
 };
 
 function formatRelativeTime(iso: string) {
@@ -30,11 +32,15 @@ function formatRelativeTime(iso: string) {
 export function NotificationBell() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [limit, setLimit] = useState(20);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data, mutate } = useSWR(user ? "notifications" : null, listNotifications, {
-    refreshInterval: 20000,
-  });
+  const { data, mutate } = useSWR(
+    user ? ["notifications", limit] : null,
+    () => listNotifications(limit),
+    { refreshInterval: 20000 }
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -54,13 +60,22 @@ export function NotificationBell() {
 
   async function handleNotificationClick(notification: AppNotification) {
     if (notification.read_at) return;
-    await markNotificationRead(notification.id);
-    mutate();
+
+    try {
+      await markNotificationRead(notification.id);
+      mutate();
+    } catch (err) {
+      setError(formatApiError(err));
+    }
   }
 
   async function handleMarkAllRead() {
-    await markAllNotificationsRead();
-    mutate();
+    try {
+      await markAllNotificationsRead();
+      mutate();
+    } catch (err) {
+      setError(formatApiError(err));
+    }
   }
 
   return (
@@ -79,6 +94,10 @@ export function NotificationBell() {
 
       {isOpen && (
         <div className="absolute right-0 top-11 z-20 w-80 rounded-lg border border-border bg-card shadow-lg">
+          {error && (
+            <p className="border-b border-border px-4 py-2 text-xs text-destructive">{error}</p>
+          )}
+
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <span className="text-sm font-medium text-foreground">Notificações</span>
             {unreadCount > 0 && (
@@ -126,6 +145,16 @@ export function NotificationBell() {
                 </button>
               );
             })}
+
+            {data?.has_more && (
+              <button
+                type="button"
+                onClick={() => setLimit((current) => current + 20)}
+                className="w-full px-4 py-2.5 text-center text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                Carregar mais
+              </button>
+            )}
           </div>
         </div>
       )}

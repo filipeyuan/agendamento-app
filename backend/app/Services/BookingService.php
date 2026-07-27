@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\AppointmentSource;
 use App\Enums\AppointmentStatus;
 use App\Enums\PaymentStatus;
+use App\Exceptions\AppointmentActionNotAllowedException;
 use App\Exceptions\AppointmentConflictException;
 use App\Models\Appointment;
 use App\Models\BusinessHour;
@@ -14,7 +15,9 @@ use App\Models\ScheduleBlock;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BookingService
 {
@@ -77,14 +80,7 @@ class BookingService
         $endAt = $startAt->clone()->addMinutes($service->duration_minutes);
 
         return DB::transaction(function () use ($client, $service, $startAt, $endAt, $notes, $source) {
-            $conflict = Appointment::query()
-                ->overlapping($startAt, $endAt)
-                ->lockForUpdate()
-                ->exists();
-
-            if ($conflict) {
-                throw new AppointmentConflictException;
-            }
+            $this->assertSlotFree($startAt, $endAt);
 
             return Appointment::create([
                 'user_id' => $client->id,
@@ -97,5 +93,128 @@ class BookingService
                 'notes' => $notes,
             ]);
         });
+    }
+
+    /**
+     * Cria uma série de agendamentos semanais recorrentes, todos compartilhando o mesmo
+     * recurring_group_id. Se qualquer ocorrência conflitar, nenhuma é criada.
+     *
+     * @return Collection<int, Appointment>
+     */
+    public function bookRecurring(
+        User $client,
+        Service $service,
+        Carbon $firstStartAt,
+        ?string $notes,
+        int $occurrences,
+        AppointmentSource $source = AppointmentSource::Web
+    ): Collection {
+        $groupId = (string) Str::uuid();
+        $duration = $service->duration_minutes;
+
+        return DB::transaction(function () use ($client, $service, $firstStartAt, $notes, $occurrences, $source, $groupId, $duration) {
+            $appointments = collect();
+
+            for ($i = 0; $i < $occurrences; $i++) {
+                $startAt = $firstStartAt->clone()->addWeeks($i);
+                $endAt = $startAt->clone()->addMinutes($duration);
+
+                $this->assertSlotFree($startAt, $endAt);
+
+                $appointments->push(Appointment::create([
+                    'user_id' => $client->id,
+                    'service_id' => $service->id,
+                    'start_at' => $startAt,
+                    'end_at' => $endAt,
+                    'status' => AppointmentStatus::Pending,
+                    'payment_status' => PaymentStatus::Pending,
+                    'source' => $source,
+                    'notes' => $notes,
+                    'recurring_group_id' => $groupId,
+                ]));
+            }
+
+            return $appointments;
+        });
+    }
+
+    /**
+     * Remarca um agendamento do próprio cliente pra um novo horário, respeitando a janela
+     * mínima de antecedência configurada.
+     */
+    public function reschedule(Appointment $appointment, Carbon $newStartAt): Appointment
+    {
+        $this->assertWithinClientActionWindow($appointment);
+
+        if (! $newStartAt->isFuture()) {
+            throw new AppointmentActionNotAllowedException('O novo horário precisa ser no futuro.');
+        }
+
+        $duration = (int) $appointment->start_at->diffInMinutes($appointment->end_at);
+        $newEndAt = $newStartAt->clone()->addMinutes($duration);
+
+        DB::transaction(function () use ($appointment, $newStartAt, $newEndAt) {
+            $this->assertSlotFree($newStartAt, $newEndAt, excludeAppointmentId: $appointment->id);
+
+            $appointment->update([
+                'start_at' => $newStartAt,
+                'end_at' => $newEndAt,
+            ]);
+        });
+
+        if ($appointment->google_event_id) {
+            $oldEventId = $appointment->google_event_id;
+            $appointment->loadMissing(['service', 'user']);
+            $appointment->update([
+                'google_event_id' => $this->googleCalendar->createEvent($appointment),
+            ]);
+            $this->googleCalendar->deleteEvent($oldEventId);
+        }
+
+        return $appointment->refresh();
+    }
+
+    /**
+     * Cancela um agendamento a pedido do próprio cliente, respeitando a janela mínima de
+     * antecedência configurada.
+     */
+    public function cancelByClient(Appointment $appointment): void
+    {
+        $this->assertWithinClientActionWindow($appointment);
+
+        $appointment->update(['status' => AppointmentStatus::Cancelled]);
+
+        if ($appointment->google_event_id) {
+            $this->googleCalendar->deleteEvent($appointment->google_event_id);
+            $appointment->update(['google_event_id' => null]);
+        }
+    }
+
+    private function assertWithinClientActionWindow(Appointment $appointment): void
+    {
+        if (in_array($appointment->status, [AppointmentStatus::Cancelled, AppointmentStatus::Completed], true)) {
+            throw new AppointmentActionNotAllowedException('Esse agendamento não pode mais ser alterado.');
+        }
+
+        $windowHours = (int) config('booking.client_action_window_hours');
+
+        if (now()->addHours($windowHours)->greaterThanOrEqualTo($appointment->start_at)) {
+            throw new AppointmentActionNotAllowedException(
+                "Esse agendamento é em menos de {$windowHours}h. Entre em contato com o estabelecimento pra alterar."
+            );
+        }
+    }
+
+    private function assertSlotFree(Carbon $startAt, Carbon $endAt, ?int $excludeAppointmentId = null): void
+    {
+        $conflict = Appointment::query()
+            ->overlapping($startAt, $endAt)
+            ->when($excludeAppointmentId, fn ($query, $id) => $query->whereKeyNot($id))
+            ->lockForUpdate()
+            ->exists();
+
+        if ($conflict) {
+            throw new AppointmentConflictException;
+        }
     }
 }

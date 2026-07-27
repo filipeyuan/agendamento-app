@@ -42,8 +42,11 @@ function AgendarForm() {
   const [date, setDate] = useState(todayIsoDate());
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [recurringOccurrences, setRecurringOccurrences] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const selectedService = services?.find((service) => String(service.id) === serviceId);
 
   const {
     data: slots,
@@ -67,6 +70,7 @@ function AgendarForm() {
         service_id: Number(serviceId),
         start_at: validSelectedSlot,
         notes: notes || undefined,
+        recurring_occurrences: recurringOccurrences ? Number(recurringOccurrences) : undefined,
       });
       redirectTo(checkoutUrl);
     } catch (err) {
@@ -159,6 +163,26 @@ function AgendarForm() {
             <div>
               <Label htmlFor="notes">Observações (opcional)</Label>
               <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+
+            <div>
+              <Label htmlFor="recurring">Repetir semanalmente (opcional)</Label>
+              <Select
+                id="recurring"
+                value={recurringOccurrences}
+                onChange={(e) => setRecurringOccurrences(e.target.value)}
+              >
+                <option value="">Não repetir</option>
+                <option value="4">Por 4 semanas</option>
+                <option value="8">Por 8 semanas</option>
+                <option value="12">Por 12 semanas</option>
+              </Select>
+              {recurringOccurrences && selectedService && (
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  {recurringOccurrences}x {formatPrice(selectedService.price)} · Total:{" "}
+                  {formatPrice(selectedService.price * Number(recurringOccurrences))}
+                </p>
+              )}
             </div>
 
             <Button disabled={!validSelectedSlot || isSubmitting} onClick={handleSubmit}>

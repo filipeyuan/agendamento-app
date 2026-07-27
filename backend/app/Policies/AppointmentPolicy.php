@@ -23,4 +23,9 @@ class AppointmentPolicy
     {
         return $user->isAdmin();
     }
+
+    public function manageOwn(User $user, Appointment $appointment): bool
+    {
+        return $user->id === $appointment->user_id;
+    }
 }

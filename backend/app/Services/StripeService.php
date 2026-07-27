@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\PaymentSetupFailedException;
 use App\Models\Appointment;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -20,6 +21,38 @@ class StripeService
      */
     public function createCheckoutSession(Appointment $appointment): array
     {
+        return $this->createSession(
+            pricingAppointment: $appointment,
+            quantity: 1,
+            metadata: ['appointment_id' => (string) $appointment->id],
+        );
+    }
+
+    /**
+     * Cria uma única sessão de checkout cobrindo todas as ocorrências de um agendamento
+     * recorrente (mesmo serviço, quantidade = número de ocorrências).
+     *
+     * @param  Collection<int, Appointment>  $appointments
+     * @return array{id: string, url: string}
+     */
+    public function createRecurringCheckoutSession(Collection $appointments): array
+    {
+        /** @var Appointment $first */
+        $first = $appointments->first();
+
+        return $this->createSession(
+            pricingAppointment: $first,
+            quantity: $appointments->count(),
+            metadata: ['recurring_group_id' => (string) $first->recurring_group_id],
+        );
+    }
+
+    /**
+     * @param  array<string, string>  $metadata
+     * @return array{id: string, url: string}
+     */
+    private function createSession(Appointment $pricingAppointment, int $quantity, array $metadata): array
+    {
         $frontendUrl = $this->frontendUrl();
 
         $response = Http::asForm()->withToken((string) config('services.stripe.secret'))->post(
@@ -28,18 +61,16 @@ class StripeService
                 'mode' => 'payment',
                 'success_url' => "{$frontendUrl}/meus-agendamentos?payment=success",
                 'cancel_url' => "{$frontendUrl}/agendar?payment=cancelled",
-                'customer_email' => $appointment->user->email,
+                'customer_email' => $pricingAppointment->user->email,
                 'expires_at' => now()->addMinutes(30)->timestamp,
-                'metadata' => [
-                    'appointment_id' => (string) $appointment->id,
-                ],
+                'metadata' => $metadata,
                 'line_items' => [[
-                    'quantity' => 1,
+                    'quantity' => $quantity,
                     'price_data' => [
                         'currency' => 'brl',
-                        'unit_amount' => (int) round(((float) $appointment->service->price) * 100),
+                        'unit_amount' => (int) round(((float) $pricingAppointment->service->price) * 100),
                         'product_data' => [
-                            'name' => $appointment->service->name,
+                            'name' => $pricingAppointment->service->name,
                         ],
                     ],
                 ]],
