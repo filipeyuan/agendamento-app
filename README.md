@@ -32,7 +32,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 
 ## Deploy
 
-- Frontend: [Vercel](https://agendamento-app-alpha.vercel.app)
+- Frontend: [Vercel](https://zelo-agendamento.vercel.app)
 - Backend: [Render](https://agendamento-app-2muq.onrender.com) (banco Postgres no Neon)
 - Documentação da API: [/docs/api](https://agendamento-app-2muq.onrender.com/docs/api)
 
