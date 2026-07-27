@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes) e o dashboard de analytics.
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração), notificações in-app e o dashboard de analytics.
 
 ## Variáveis de ambiente
 
@@ -57,6 +57,10 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 | `GEMINI_MODEL` | Modelo do Gemini usado pelo assistente (default `gemini-flash-lite-latest`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Credenciais OAuth criadas no Google Cloud Console (Credentials > OAuth Client ID, tipo "Web application"), usadas pra sincronizar com o Google Calendar do admin |
 | `GOOGLE_REDIRECT_URI` | URL de callback cadastrada no OAuth Client ID (ex: `http://localhost:8000/api/google-calendar/callback` local, ou a URL do Render em produção) |
+| `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` | Chaves de teste do Stripe ([dashboard.stripe.com/test/apikeys](https://dashboard.stripe.com/test/apikeys)), usadas pra criar a sessão de checkout do pagamento do agendamento |
+| `STRIPE_WEBHOOK_SECRET` | Segredo de assinatura do endpoint de webhook cadastrado em [dashboard.stripe.com/test/webhooks](https://dashboard.stripe.com/test/webhooks) (local, use o Stripe CLI: `stripe listen --forward-to localhost:8000/api/stripe/webhook`, que gera um segredo próprio pra dev) |
+| `RESEND_API_KEY` | Chave da API do [Resend](https://resend.com/api-keys), usada pra enviar os e-mails transacionais (`MAIL_MAILER=resend`). Sem domínio verificado, só entrega e-mail pro próprio dono da conta |
+| `APP_LOCALE` | `pt_BR`, define o idioma das mensagens de validação (erros de formulário, autenticação etc) |
 
 ## Documentação da API
 
@@ -124,6 +128,25 @@ O assistente usa a API do Gemini com function calling: ele mesmo decide quando c
 | DELETE | `/api/admin/google-calendar/disconnect` | admin | Desconecta o Google Calendar |
 
 Com a conexão ativa (`App\Services\GoogleCalendarService`), confirmar um agendamento cria um evento no Google Calendar do admin, cancelar remove esse evento, e os horários já ocupados na agenda pessoal do admin no Google entram como indisponíveis no cálculo de horários livres.
+
+### Pagamento (Stripe)
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| POST | `/api/appointments` | sim | Além de criar o agendamento, já retorna `checkout_url` com a sessão de pagamento do Stripe |
+| POST | `/api/stripe/webhook` | não (assinatura verificada via HMAC) | Recebe `checkout.session.completed` (marca o agendamento como pago e dispara e-mail/notificação) e `checkout.session.expired` (libera o horário se não foi pago) |
+
+O agendamento só é considerado reservado de fato depois do pagamento (`payment_status`); se o checkout expirar sem pagamento, `App\Http\Controllers\Api\StripeWebhookController` remove o agendamento pendente pra liberar o horário.
+
+### Notificações
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/api/notifications` | sim | Lista as últimas notificações do usuário autenticado, com a contagem de não lidas |
+| PATCH | `/api/notifications/{notification}/read` | sim | Marca uma notificação como lida |
+| POST | `/api/notifications/mark-all-read` | sim | Marca todas as notificações do usuário como lidas |
+
+Usa o sistema nativo de notifications do Laravel (canal `database`), disparada pro cliente quando o pagamento é confirmado, o agendamento é confirmado ou cancelado (os mesmos eventos que disparam e-mail).
 
 ### Dashboard de analytics
 
