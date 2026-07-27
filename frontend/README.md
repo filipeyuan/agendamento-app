@@ -7,7 +7,9 @@ Frontend do sistema de agendamento, consumindo a API Laravel via REST.
 - Next.js 16 (App Router) + TypeScript
 - Tailwind CSS v4 (design tokens via variáveis CSS)
 - SWR (busca e revalidação de dados no client)
-- FullCalendar (calendário visual do painel admin)
+- FullCalendar (calendário visual do painel admin) + `@daypicker/react` (seleção de data em `/agendar`)
+- Pagamento via Stripe Checkout: o backend retorna a URL da sessão, o front só redireciona (`window.location.href`), sem SDK do Stripe no client
+- Sino de notificações no navbar (SWR com polling)
 - Componentes com variantes via `class-variance-authority`
 
 ## Como rodar localmente
@@ -47,10 +49,13 @@ Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, aus�
 | `/` | público | Home institucional, com status da API em tempo real |
 | `/servicos` | público | Lista de serviços disponíveis |
 | `/login`, `/cadastro` | público | Autenticação |
-| `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre |
-| `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status |
+| `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre, paga via Stripe Checkout |
+| `/assistente` | cliente autenticado | Chat com o assistente de agendamento via IA |
+| `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status e status de pagamento |
 | `/admin/servicos` | admin | CRUD de serviços |
 | `/admin/agendamentos` | admin | Calendário (mês/semana/lista) com filtro de status + confirmar/cancelar/concluir |
+| `/admin/horarios` | admin | Horário de atendimento configurável, bloqueios de agenda e conexão com o Google Calendar |
+| `/admin/dashboard` | admin | Analytics: agendamentos por dia, status, receita e serviços mais procurados |
 
 ## Estrutura
 
