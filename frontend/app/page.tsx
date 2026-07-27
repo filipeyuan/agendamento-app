@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronDown,
+  CreditCard,
   LayoutDashboard,
   Scissors,
   ShieldCheck,
@@ -62,6 +63,12 @@ const features = [
     title: "Funciona em qualquer lugar",
     description: "É só abrir no navegador, do celular ou do computador. Sem instalar nada.",
   },
+  {
+    icon: CreditCard,
+    title: "Pagamento e avisos automáticos",
+    description:
+      "O cliente paga na hora de agendar (Stripe). A cada mudança de status, ele recebe e-mail e uma notificação no sininho do app.",
+  },
 ];
 
 const audiences = ["Salões de beleza", "Barbearias", "Clínicas e consultórios", "Estúdios", "Pet shops"];
@@ -86,6 +93,11 @@ const faq = [
     question: "O assistente por IA realmente cria o agendamento, ou só responde perguntas?",
     answer:
       "Ele cria de verdade. O assistente consulta os serviços ativos, checa os horários livres e confirma o agendamento no banco de dados, sempre a partir de dados reais, nunca inventados.",
+  },
+  {
+    question: "Como funciona o pagamento e os avisos?",
+    answer:
+      "O cliente paga direto no checkout do Stripe ao agendar; o horário só fica reservado enquanto o pagamento estiver em aberto, e é liberado automaticamente se ele não pagar. A cada confirmação, cancelamento ou pagamento aprovado, o cliente recebe um e-mail e uma notificação dentro do app.",
   },
   {
     question: "Dá pra configurar um horário de atendimento diferente por dia da semana?",
