@@ -145,17 +145,17 @@ export function NotificationBell() {
                 </button>
               );
             })}
-
-            {data?.has_more && (
-              <button
-                type="button"
-                onClick={() => setLimit((current) => current + 20)}
-                className="w-full px-4 py-2.5 text-center text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                Carregar mais
-              </button>
-            )}
           </div>
+
+          {data?.has_more && (
+            <button
+              type="button"
+              onClick={() => setLimit((current) => current + 20)}
+              className="w-full border-t border-border px-4 py-2.5 text-center text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              Carregar mais
+            </button>
+          )}
         </div>
       )}
     </div>
