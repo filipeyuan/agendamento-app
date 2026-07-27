@@ -22,4 +22,27 @@ return [
 
     'slot_interval_minutes' => (int) env('BOOKING_SLOT_INTERVAL_MINUTES', 30),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Autoatendimento do cliente
+    |--------------------------------------------------------------------------
+    |
+    | Quantas horas de antecedência o cliente precisa ter pra cancelar ou
+    | remarcar o próprio agendamento sem falar com o admin.
+    |
+    */
+
+    'client_action_window_hours' => (int) env('BOOKING_CLIENT_ACTION_WINDOW_HOURS', 2),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agendamento recorrente
+    |--------------------------------------------------------------------------
+    |
+    | Máximo de ocorrências semanais que o cliente pode agendar de uma vez.
+    |
+    */
+
+    'max_recurring_occurrences' => (int) env('BOOKING_MAX_RECURRING_OCCURRENCES', 12),
+
 ];

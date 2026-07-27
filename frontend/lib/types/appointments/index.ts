@@ -37,6 +37,7 @@ export interface Appointment {
   id: number;
   status: AppointmentStatus;
   payment_status: PaymentStatus;
+  recurring_group_id: string | null;
   source: AppointmentSource;
   start_at: string;
   end_at: string;

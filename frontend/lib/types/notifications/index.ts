@@ -1,4 +1,8 @@
-export type NotificationType = "payment_confirmed" | "appointment_confirmed" | "appointment_cancelled";
+export type NotificationType =
+  | "payment_confirmed"
+  | "appointment_confirmed"
+  | "appointment_cancelled"
+  | "appointment_rescheduled";
 
 export interface AppNotification {
   id: string;

@@ -6,16 +6,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RescheduleAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentStatusRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Mail\AppointmentCancelledMail;
 use App\Mail\AppointmentConfirmedMail;
+use App\Mail\AppointmentRescheduledMail;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentCancelledNotification;
 use App\Notifications\AppointmentConfirmedNotification;
+use App\Notifications\AppointmentRescheduledNotification;
 use App\Services\BookingService;
 use App\Services\GoogleCalendarService;
 use App\Services\StripeService;
@@ -109,6 +112,12 @@ class AppointmentController extends Controller
         $service = Service::query()->findOrFail($request->validated('service_id'));
         abort_if(! $service instanceof Service, 404);
 
+        $occurrences = $request->validated('recurring_occurrences');
+
+        if ($occurrences) {
+            return $this->storeRecurring($bookingService, $stripe, $user, $service, $request, (int) $occurrences);
+        }
+
         $appointment = $bookingService->book(
             client: $user,
             service: $service,
@@ -129,6 +138,79 @@ class AppointmentController extends Controller
             ->additional(['checkout_url' => $checkout['url']])
             ->response()
             ->setStatusCode(201);
+    }
+
+    private function storeRecurring(
+        BookingService $bookingService,
+        StripeService $stripe,
+        User $user,
+        Service $service,
+        StoreAppointmentRequest $request,
+        int $occurrences
+    ): JsonResponse {
+        $appointments = $bookingService->bookRecurring(
+            client: $user,
+            service: $service,
+            firstStartAt: Carbon::parse($request->validated('start_at')),
+            notes: $request->validated('notes'),
+            occurrences: $occurrences,
+        );
+
+        $ids = $appointments->pluck('id');
+
+        try {
+            $checkout = $stripe->createRecurringCheckoutSession(
+                $appointments->map(fn (Appointment $appointment) => $appointment->load(['service', 'user']))
+            );
+        } catch (Throwable $e) {
+            Appointment::query()->whereIn('id', $ids)->delete();
+            throw $e;
+        }
+
+        Appointment::query()->whereIn('id', $ids)->update(['stripe_checkout_session_id' => $checkout['id']]);
+
+        $refreshed = Appointment::query()->whereIn('id', $ids)->with('service')->orderBy('start_at')->get();
+
+        return AppointmentResource::collection($refreshed)
+            ->additional(['checkout_url' => $checkout['url']])
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    /**
+     * Cancela um agendamento a pedido do próprio cliente.
+     */
+    public function cancel(Appointment $appointment, BookingService $bookingService): AppointmentResource
+    {
+        $this->authorize('manageOwn', $appointment);
+
+        $bookingService->cancelByClient($appointment);
+
+        $appointment->refresh()->loadMissing(['service', 'user']);
+
+        $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
+        $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));
+
+        return AppointmentResource::make($appointment);
+    }
+
+    /**
+     * Remarca um agendamento a pedido do próprio cliente.
+     */
+    public function reschedule(
+        RescheduleAppointmentRequest $request,
+        Appointment $appointment,
+        BookingService $bookingService
+    ): AppointmentResource {
+        $this->authorize('manageOwn', $appointment);
+
+        $rescheduled = $bookingService->reschedule($appointment, Carbon::parse($request->validated('start_at')));
+        $rescheduled->loadMissing(['service', 'user']);
+
+        $this->sendMailSafely($rescheduled, new AppointmentRescheduledMail($rescheduled));
+        $this->notifySafely($rescheduled, new AppointmentRescheduledNotification($rescheduled));
+
+        return AppointmentResource::make($rescheduled);
     }
 
     /**

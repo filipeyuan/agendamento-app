@@ -9,15 +9,28 @@ export async function createAppointment(payload: {
   service_id: number;
   start_at: string;
   notes?: string;
+  recurring_occurrences?: number;
 }) {
-  const { data, checkout_url } = await apiRequest<ApiResource<Appointment> & { checkout_url: string }>(
-    "/appointments",
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }
-  );
-  return { appointment: data, checkoutUrl: checkout_url };
+  const { checkout_url } = await apiRequest<{ checkout_url: string }>("/appointments", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return { checkoutUrl: checkout_url };
+}
+
+export async function cancelAppointment(id: number) {
+  const { data } = await apiRequest<ApiResource<Appointment>>(`/appointments/${id}/cancel`, {
+    method: "PATCH",
+  });
+  return data;
+}
+
+export async function rescheduleAppointment(id: number, startAt: string) {
+  const { data } = await apiRequest<ApiResource<Appointment>>(`/appointments/${id}/reschedule`, {
+    method: "PATCH",
+    body: JSON.stringify({ start_at: startAt }),
+  });
+  return data;
 }
 
 export async function myAppointments() {

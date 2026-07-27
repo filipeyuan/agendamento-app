@@ -22,10 +22,17 @@ class NotificationController extends Controller
         $user = $request->user();
         abort_if(! $user instanceof User, 401);
 
-        $notifications = $user->notifications()->latest()->limit(20)->get();
+        $request->validate([
+            'limit' => ['sometimes', 'integer', 'min:1', 'max:200'],
+        ]);
+
+        $limit = (int) $request->integer('limit', 20);
+
+        $notifications = $user->notifications()->latest()->limit($limit + 1)->get();
 
         return response()->json([
-            'data' => NotificationResource::collection($notifications),
+            'data' => NotificationResource::collection($notifications->take($limit)),
+            'has_more' => $notifications->count() > $limit,
             'unread_count' => $user->unreadNotifications()->count(),
         ]);
     }
