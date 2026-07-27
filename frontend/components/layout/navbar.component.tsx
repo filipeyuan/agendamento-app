@@ -104,6 +104,9 @@ export function Navbar() {
           <NavLink href="/admin/horarios" icon={Clock}>
             Horários
           </NavLink>
+          <NavLink href="/assistente" icon={Sparkles}>
+            Assistente
+          </NavLink>
         </>
       )}
 
