@@ -68,7 +68,7 @@ return [
          */
         'elements' => [
             'view' => 'scramble::docs',
-            'theme' => 'light',
+            'theme' => 'system',
             'hideTryIt' => false,
             'hideSchemas' => false,
             'logo' => '',
