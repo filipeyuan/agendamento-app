@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração), notificações in-app e o dashboard de analytics.
+Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), notificações in-app e o dashboard de analytics.
 
 ## Variáveis de ambiente
 
@@ -53,6 +53,8 @@ Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços
 | `DB_URL` | Em produção, connection string completa do Postgres (ex: Neon) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciais do admin criado pelo seeder |
 | `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário padrão usado só na primeira vez que o seeder cria o horário de atendimento (depois disso, o horário fica no banco e é editado por `/api/admin/business-hours`) |
+| `BOOKING_CLIENT_ACTION_WINDOW_HOURS` | Quantas horas de antecedência o cliente precisa ter pra cancelar/remarcar sozinho (default `2`) |
+| `BOOKING_MAX_RECURRING_OCCURRENCES` | Máximo de ocorrências semanais num agendamento recorrente (default `12`) |
 | `GEMINI_API_KEY` | Chave da API do Gemini (gratuita em [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)), usada pelo assistente de agendamento via IA. Sem ela, o assistente responde avisando que ainda não foi configurado |
 | `GEMINI_MODEL` | Modelo do Gemini usado pelo assistente (default `gemini-flash-lite-latest`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Credenciais OAuth criadas no Google Cloud Console (Credentials > OAuth Client ID, tipo "Web application"), usadas pra sincronizar com o Google Calendar do admin |
@@ -95,8 +97,10 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| POST | `/api/appointments` | sim | Cria um agendamento (retorna 409 em caso de conflito de horário) |
+| POST | `/api/appointments` | sim | Cria um agendamento (409 em caso de conflito). Aceita `recurring_occurrences` opcional pra criar uma série semanal recorrente numa única sessão de pagamento |
 | GET | `/api/appointments/mine` | sim | Lista os agendamentos do usuário autenticado |
+| PATCH | `/api/appointments/{appointment}/cancel` | sim (dono) | Cliente cancela o próprio agendamento, até a janela mínima de antecedência (`client_action_window_hours`) |
+| PATCH | `/api/appointments/{appointment}/reschedule` | sim (dono) | Cliente remarca o próprio agendamento pra um novo horário livre |
 | GET | `/api/admin/appointments?date=&from=&to=&status=` | admin | Lista todos os agendamentos, com filtros opcionais (data exata ou intervalo, e status) |
 | PATCH | `/api/admin/appointments/{appointment}/status` | admin | Atualiza o status (`confirmed`, `cancelled`, `completed`) |
 

@@ -51,7 +51,7 @@ Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, aus�
 | `/login`, `/cadastro` | público | Autenticação |
 | `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre, paga via Stripe Checkout |
 | `/assistente` | cliente autenticado | Chat com o assistente de agendamento via IA |
-| `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status e status de pagamento |
+| `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status/pagamento, e cancelar/remarcar sozinho (até 2h antes) |
 | `/admin/servicos` | admin | CRUD de serviços |
 | `/admin/agendamentos` | admin | Calendário (mês/semana/lista) com filtro de status + confirmar/cancelar/concluir |
 | `/admin/horarios` | admin | Horário de atendimento configurável, bloqueios de agenda e conexão com o Google Calendar |

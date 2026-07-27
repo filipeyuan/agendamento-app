@@ -15,7 +15,9 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Assistente de agendamento via IA**: chat com Google Gemini que consulta serviços, verifica horários livres e cria o agendamento de verdade via function calling, não é só um chat decorativo
 - **Google Calendar**: agendamentos confirmados viram evento real no Google Calendar do admin, e compromissos pessoais já existentes bloqueiam horários automaticamente
 - **Pagamento na hora de agendar**: checkout real via Stripe, o horário só é reservado enquanto o pagamento estiver pendente e é liberado automaticamente se o cliente não pagar
-- **Notificações**: e-mail (confirmação de pagamento, agendamento confirmado/cancelado) via Resend, mais um sino de notificações in-app com contagem de não lidas
+- **Agendamento recorrente**: repetição semanal (até 12 vezes), pago numa única sessão de checkout; se qualquer ocorrência conflitar, nenhuma é criada
+- **Cliente remarca/cancela sozinho**: até 2h antes do horário, sem precisar falar com o admin
+- **Notificações**: e-mail (pagamento confirmado, agendamento confirmado/cancelado/remarcado) via Resend, mais um sino de notificações in-app com contagem de não lidas
 - **Dashboard de analytics**: volume de agendamentos por dia, distribuição por status, receita e serviços mais procurados
 - **Painel admin completo**: CRUD de serviços, gestão de agendamentos com calendário visual (FullCalendar), confirmar/cancelar/concluir
 
@@ -28,7 +30,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
 - **IA:** Google Gemini (function calling)
 - **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional)
-- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 70 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 81 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
 
 ## Deploy
 
@@ -56,5 +58,6 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 5**: Polimento final. Identidade de produto (nome/copy reais), ilustrações e dashboard de analytics
 - [x] **Fase 6**: Referência visual e mobile. Redesign de UI/UX inspirado em SaaS reais, badges e ícones de estado, otimização do modo mobile
 - [x] **Fase 7**: Pagamento e notificações. Checkout via Stripe, e-mail transacional (Resend), notificações in-app e mensagens de validação em português
+- [x] **Fase 8**: Autoatendimento do cliente. Cancelar/remarcar o próprio agendamento, agendamento recorrente semanal, e ajustes de UX (confirmação antes de cancelar, histórico de notificações)
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).
