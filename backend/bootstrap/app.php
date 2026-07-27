@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // O Render (e a maioria dos PaaS) termina o HTTPS na borda e repassa a
+        // conexão como HTTP puro pro container. Sem confiar nesse proxy, o
+        // Laravel acha que a conexão é HTTP e gera URLs absolutas erradas.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
