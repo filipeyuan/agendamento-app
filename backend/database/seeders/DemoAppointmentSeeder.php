@@ -23,10 +23,6 @@ class DemoAppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Appointment::query()->exists()) {
-            return;
-        }
-
         $services = Service::all();
         if ($services->isEmpty()) {
             return;
@@ -40,6 +36,12 @@ class DemoAppointmentSeeder extends Seeder
                 'role' => UserRole::Client,
             ]
         );
+
+        // Idempotente pelo próprio cliente demo, não pela tabela toda: assim funciona mesmo
+        // num banco que já tem outros agendamentos (de testes manuais, por exemplo).
+        if ($client->appointments()->exists()) {
+            return;
+        }
 
         // [deslocamento em dias a partir de hoje, hora, status, índice do serviço]
         $entries = [
