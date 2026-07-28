@@ -48,5 +48,7 @@ class DatabaseSeeder extends Seeder
                 [...$service, 'created_by' => $admin->id]
             );
         }
+
+        $this->call(DemoAppointmentSeeder::class);
     }
 }
