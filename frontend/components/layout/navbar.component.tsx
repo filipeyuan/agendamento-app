@@ -23,6 +23,7 @@ import { Logo } from "@/components/layout/logo.component";
 import { NotificationBell } from "@/components/layout/notification-bell.component";
 import { ThemeToggle } from "@/components/layout/theme-toggle.component";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils/cn";
 
@@ -74,6 +75,12 @@ export function Navbar() {
       <NavLink href="/servicos" icon={Store}>
         Serviços
       </NavLink>
+
+      {isLoading && (
+        <span className="flex items-center px-3 py-1.5 text-muted-foreground">
+          <Spinner className="h-4 w-4" />
+        </span>
+      )}
 
       {!isLoading && user?.role === "client" && (
         <>
@@ -132,6 +139,8 @@ export function Navbar() {
           <div className="ml-2 flex items-center gap-1 border-l border-border pl-3">
             <NotificationBell />
             <ThemeToggle />
+
+            {isLoading && <Spinner className="ml-1 h-4 w-4 text-muted-foreground" />}
 
             {!isLoading && user && (
               <Button variant="outline" size="sm" onClick={handleLogout} className="ml-1">
