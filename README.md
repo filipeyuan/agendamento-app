@@ -38,8 +38,6 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - Backend: [Render](https://agendamento-app-2muq.onrender.com) (banco Postgres no Neon)
 - Documentação da API: [/docs/api](https://agendamento-app-2muq.onrender.com/docs/api)
 
-**Login de demonstração** (admin): `admin@agendamento.app` / `admin12345`
-
 ## Como rodar tudo local com Docker
 
 ```bash
