@@ -55,8 +55,10 @@ class StripeWebhookController extends Controller
             return response()->json(['received' => true]);
         }
 
+        $paymentIntentId = $session['payment_intent'] ?? null;
+
         match ($event['type'] ?? null) {
-            'checkout.session.completed' => $this->markAsPaid($appointments),
+            'checkout.session.completed' => $this->markAsPaid($appointments, is_string($paymentIntentId) ? $paymentIntentId : null),
             'checkout.session.expired' => $this->releaseUnpaidSlots($appointments),
             default => null,
         };
@@ -67,7 +69,7 @@ class StripeWebhookController extends Controller
     /**
      * @param  Collection<int, Appointment>  $appointments
      */
-    private function markAsPaid(Collection $appointments): void
+    private function markAsPaid(Collection $appointments, ?string $paymentIntentId): void
     {
         $unpaid = $appointments->filter(fn (Appointment $appointment) => $appointment->payment_status === PaymentStatus::Pending);
 
@@ -77,7 +79,10 @@ class StripeWebhookController extends Controller
 
         Appointment::query()
             ->whereIn('id', $unpaid->pluck('id'))
-            ->update(['payment_status' => PaymentStatus::Paid]);
+            ->update([
+                'payment_status' => PaymentStatus::Paid,
+                'stripe_payment_intent_id' => $paymentIntentId,
+            ]);
 
         /** @var Appointment $first */
         $first = $unpaid->first();

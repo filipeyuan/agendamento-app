@@ -229,7 +229,8 @@ class AppointmentController extends Controller
     public function updateStatus(
         UpdateAppointmentStatusRequest $request,
         Appointment $appointment,
-        GoogleCalendarService $googleCalendar
+        GoogleCalendarService $googleCalendar,
+        StripeService $stripe
     ): AppointmentResource {
         $this->authorize('updateStatus', $appointment);
 
@@ -261,6 +262,8 @@ class AppointmentController extends Controller
                 $googleCalendar->deleteEvent($appointment->google_event_id);
                 $appointment->update(['google_event_id' => null]);
             }
+
+            $stripe->refund($appointment);
 
             $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
             $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));

@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Fillable([
     'user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes',
-    'google_event_id', 'payment_status', 'stripe_checkout_session_id', 'recurring_group_id',
+    'google_event_id', 'payment_status', 'stripe_checkout_session_id', 'stripe_payment_intent_id', 'recurring_group_id',
 ])]
 class Appointment extends Model
 {

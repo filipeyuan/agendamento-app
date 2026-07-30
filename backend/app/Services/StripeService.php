@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\PaymentStatus;
 use App\Exceptions\PaymentSetupFailedException;
 use App\Models\Appointment;
 use Illuminate\Support\Collection;
@@ -90,6 +91,40 @@ class StripeService
             'id' => (string) $response->json('id'),
             'url' => (string) $response->json('url'),
         ];
+    }
+
+    /**
+     * Reembolsa (total ou parcialmente, via PaymentIntent) o valor do serviço desse agendamento
+     * específico. Não faz nada se ele não estiver pago ou não tiver payment_intent registrado
+     * (ex: agendamentos criados antes dessa coluna existir). Nunca lança exceção: uma falha no
+     * reembolso não pode impedir o cancelamento em si, só fica registrada no log pra ação manual.
+     */
+    public function refund(Appointment $appointment): void
+    {
+        if ($appointment->payment_status !== PaymentStatus::Paid || ! $appointment->stripe_payment_intent_id) {
+            return;
+        }
+
+        $response = Http::asForm()->withToken((string) config('services.stripe.secret'))->post(
+            self::API.'/refunds',
+            [
+                'payment_intent' => $appointment->stripe_payment_intent_id,
+                'amount' => (int) round(((float) $appointment->service->price) * 100),
+            ]
+        );
+
+        if ($response->failed()) {
+            Log::error('Falha ao reembolsar pagamento no Stripe.', [
+                'appointment_id' => $appointment->id,
+                'payment_intent' => $appointment->stripe_payment_intent_id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return;
+        }
+
+        $appointment->update(['payment_status' => PaymentStatus::Refunded]);
     }
 
     /**
