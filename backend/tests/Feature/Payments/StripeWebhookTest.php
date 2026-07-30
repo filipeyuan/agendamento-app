@@ -60,6 +60,33 @@ class StripeWebhookTest extends TestCase
     }
 
     #[Test]
+    public function checkout_completed_stores_the_payment_intent_id(): void
+    {
+        Mail::fake();
+
+        $appointment = Appointment::factory()->create([
+            'payment_status' => PaymentStatus::Pending,
+            'stripe_checkout_session_id' => 'cs_test_789',
+        ]);
+
+        [$payload, $signature] = $this->signedPayload([
+            'type' => 'checkout.session.completed',
+            'data' => ['object' => ['id' => 'cs_test_789', 'payment_intent' => 'pi_test_789']],
+        ]);
+
+        $response = $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'HTTP_Stripe-Signature' => $signature,
+            'CONTENT_TYPE' => 'application/json',
+        ], $payload);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'stripe_payment_intent_id' => 'pi_test_789',
+        ]);
+    }
+
+    #[Test]
     public function checkout_expired_deletes_the_still_unpaid_appointment(): void
     {
         $appointment = Appointment::factory()->create([

@@ -2,18 +2,20 @@ import type { Service } from "@/lib/types/services";
 
 export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
-export type PaymentStatus = "pending" | "paid";
+export type PaymentStatus = "pending" | "paid" | "refunded";
 
 export type AppointmentSource = "web" | "ai_chat";
 
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   pending: "Pagamento pendente",
   paid: "Pago",
+  refunded: "Reembolsado",
 };
 
-export const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, "warning" | "success"> = {
+export const PAYMENT_STATUS_BADGE_VARIANT: Record<PaymentStatus, "warning" | "success" | "secondary"> = {
   pending: "warning",
   paid: "success",
+  refunded: "secondary",
 };
 
 export const APPOINTMENT_STATUS_LABEL: Record<AppointmentStatus, string> = {

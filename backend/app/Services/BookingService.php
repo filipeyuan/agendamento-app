@@ -21,7 +21,10 @@ use Illuminate\Support\Str;
 
 class BookingService
 {
-    public function __construct(private GoogleCalendarService $googleCalendar) {}
+    public function __construct(
+        private GoogleCalendarService $googleCalendar,
+        private StripeService $stripe,
+    ) {}
 
     /**
      * @return array<int, Carbon>
@@ -188,6 +191,8 @@ class BookingService
             $this->googleCalendar->deleteEvent($appointment->google_event_id);
             $appointment->update(['google_event_id' => null]);
         }
+
+        $this->stripe->refund($appointment->loadMissing('service'));
     }
 
     private function assertWithinClientActionWindow(Appointment $appointment): void

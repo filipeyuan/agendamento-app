@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Appointments;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
 use App\Mail\AppointmentCancelledMail;
 use App\Mail\AppointmentConfirmedMail;
@@ -104,6 +105,34 @@ class AppointmentStatusTest extends TestCase
             'id' => $appointment->id,
             'google_event_id' => null,
         ]);
+    }
+
+    #[Test]
+    public function admin_cancelling_a_paid_appointment_refunds_it_via_stripe(): void
+    {
+        Mail::fake();
+        Http::fake([
+            'api.stripe.com/v1/refunds' => Http::response(['id' => 're_test_789']),
+        ]);
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $appointment = Appointment::factory()->create([
+            'status' => AppointmentStatus::Confirmed,
+            'payment_status' => PaymentStatus::Paid,
+            'stripe_payment_intent_id' => 'pi_test_789',
+        ]);
+
+        $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
+            'status' => AppointmentStatus::Cancelled->value,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'payment_status' => PaymentStatus::Refunded->value,
+        ]);
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.stripe.com/v1/refunds'
+            && $request['payment_intent'] === 'pi_test_789');
     }
 
     #[Test]

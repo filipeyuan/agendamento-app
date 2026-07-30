@@ -13,6 +13,7 @@ use App\Models\BusinessHour;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -48,6 +49,87 @@ class ClientSelfServiceTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.status', AppointmentStatus::Cancelled->value);
         Mail::assertSent(AppointmentCancelledMail::class);
+    }
+
+    #[Test]
+    public function cancelling_a_paid_appointment_refunds_it_via_stripe(): void
+    {
+        Mail::fake();
+        Http::fake([
+            'api.stripe.com/v1/refunds' => Http::response(['id' => 're_test_123']),
+        ]);
+
+        $client = User::factory()->create();
+        $service = Service::factory()->create(['price' => 80]);
+        $appointment = Appointment::factory()->create([
+            'user_id' => $client->id,
+            'service_id' => $service->id,
+            'status' => AppointmentStatus::Confirmed,
+            'payment_status' => PaymentStatus::Paid,
+            'stripe_payment_intent_id' => 'pi_test_123',
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addMinutes(30),
+        ]);
+
+        $response = $this->actingAs($client)->patchJson("/api/appointments/{$appointment->id}/cancel");
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'payment_status' => PaymentStatus::Refunded->value,
+        ]);
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.stripe.com/v1/refunds'
+            && $request['payment_intent'] === 'pi_test_123'
+            && (int) $request['amount'] === 8000);
+    }
+
+    #[Test]
+    public function cancelling_a_paid_appointment_keeps_it_paid_if_the_stripe_refund_fails(): void
+    {
+        Mail::fake();
+        Http::fake([
+            'api.stripe.com/v1/refunds' => Http::response(['error' => ['message' => 'charge already refunded']], 400),
+        ]);
+
+        $client = User::factory()->create();
+        $appointment = Appointment::factory()->create([
+            'user_id' => $client->id,
+            'status' => AppointmentStatus::Confirmed,
+            'payment_status' => PaymentStatus::Paid,
+            'stripe_payment_intent_id' => 'pi_test_456',
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addMinutes(30),
+        ]);
+
+        $response = $this->actingAs($client)->patchJson("/api/appointments/{$appointment->id}/cancel");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', AppointmentStatus::Cancelled->value);
+        $this->assertDatabaseHas('appointments', [
+            'id' => $appointment->id,
+            'payment_status' => PaymentStatus::Paid->value,
+        ]);
+    }
+
+    #[Test]
+    public function cancelling_an_appointment_with_no_payment_intent_does_not_call_stripe(): void
+    {
+        Mail::fake();
+        Http::fake();
+
+        $client = User::factory()->create();
+        $appointment = Appointment::factory()->create([
+            'user_id' => $client->id,
+            'status' => AppointmentStatus::Confirmed,
+            'payment_status' => PaymentStatus::Pending,
+            'start_at' => now()->addDay(),
+            'end_at' => now()->addDay()->addMinutes(30),
+        ]);
+
+        $response = $this->actingAs($client)->patchJson("/api/appointments/{$appointment->id}/cancel");
+
+        $response->assertOk();
+        Http::assertNothingSent();
     }
 
     #[Test]
