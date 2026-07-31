@@ -1,3 +1,5 @@
+import type { Business } from "@/lib/types/businesses";
+
 export type UserRole = "client" | "admin";
 
 export interface User {
@@ -6,4 +8,5 @@ export interface User {
   email: string;
   role: UserRole;
   phone: string | null;
+  business?: Business | null;
 }

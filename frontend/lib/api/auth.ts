@@ -16,6 +16,8 @@ export function register(payload: {
   password: string;
   password_confirmation: string;
   phone?: string;
+  account_type: "client" | "business";
+  business_name?: string;
 }) {
   return apiRequest<AuthResponse>("/register", {
     method: "POST",

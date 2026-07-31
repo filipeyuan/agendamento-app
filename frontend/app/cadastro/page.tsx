@@ -12,12 +12,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth/context";
 import { formatApiError } from "@/lib/utils/format-error";
+import { cn } from "@/lib/utils/cn";
+
+type AccountType = "client" | "business";
+
+const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
+  client: "Sou cliente",
+  business: "Tenho um negócio",
+};
 
 export default function CadastroPage() {
   const { register } = useAuth();
   const router = useRouter();
 
+  const [accountType, setAccountType] = useState<AccountType>("client");
   const [name, setName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -31,14 +41,16 @@ export default function CadastroPage() {
     setIsSubmitting(true);
 
     try {
-      await register({
+      const user = await register({
         name,
         email,
         phone: phone || undefined,
         password,
         password_confirmation: passwordConfirmation,
+        account_type: accountType,
+        business_name: accountType === "business" ? businessName : undefined,
       });
-      router.push("/servicos");
+      router.push(user.role === "admin" ? "/admin/dashboard" : "/servicos");
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -51,14 +63,48 @@ export default function CadastroPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Criar conta</CardTitle>
-          <CardDescription>Cadastre-se para agendar um serviço.</CardDescription>
+          <CardDescription>
+            {accountType === "client"
+              ? "Cadastre-se para agendar um serviço."
+              : "Cadastre seu negócio e comece a receber agendamentos."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {error && <Alert variant="destructive">{error}</Alert>}
 
+            <div className="flex gap-1 rounded-md border border-border bg-muted/40 p-1">
+              {(Object.keys(ACCOUNT_TYPE_LABEL) as AccountType[]).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setAccountType(option)}
+                  className={cn(
+                    "flex-1 rounded px-3 py-1.5 text-sm font-medium transition-colors",
+                    accountType === option
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {ACCOUNT_TYPE_LABEL[option]}
+                </button>
+              ))}
+            </div>
+
+            {accountType === "business" && (
+              <div>
+                <Label htmlFor="business_name">Nome do negócio</Label>
+                <Input
+                  id="business_name"
+                  required
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                />
+              </div>
+            )}
+
             <div>
-              <Label htmlFor="name">Nome</Label>
+              <Label htmlFor="name">{accountType === "business" ? "Seu nome" : "Nome"}</Label>
               <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 

@@ -99,6 +99,12 @@ export function Navbar() {
       {!isLoading && user?.role === "admin" && (
         <>
           <div className="mx-1 hidden h-5 w-px bg-border md:block" aria-hidden />
+          {user.business && (
+            <span className="hidden items-center gap-1.5 px-2 text-sm font-medium text-muted-foreground md:flex">
+              <Store className="h-4 w-4" />
+              {user.business.name}
+            </span>
+          )}
           <NavLink href="/admin/dashboard" icon={LayoutDashboard}>
             Dashboard
           </NavLink>
