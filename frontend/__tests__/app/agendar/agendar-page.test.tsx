@@ -17,7 +17,7 @@ jest.mock("@/lib/api/appointments");
 jest.mock("@/lib/utils/navigate");
 
 jest.mock("next/navigation", () => ({
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams({ business: "studio-zelo" }),
 }));
 
 const mockedListServices = jest.mocked(listServices);

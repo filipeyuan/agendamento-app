@@ -5,8 +5,10 @@ interface ApiResource<T> {
   data: T;
 }
 
-export async function listServices() {
-  const { data } = await apiRequest<ApiResource<Service[]>>("/services");
+export async function listServices(businessSlug: string) {
+  const { data } = await apiRequest<ApiResource<Service[]>>(
+    `/services?business=${encodeURIComponent(businessSlug)}`
+  );
   return data;
 }
 

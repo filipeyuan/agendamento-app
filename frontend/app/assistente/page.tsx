@@ -1,14 +1,19 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { Suspense, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
 import { Bot, Send, User as UserIcon } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { sendChatMessage } from "@/lib/api/assistant";
+import { listBusinesses } from "@/lib/api/businesses";
 import type { ChatMessage } from "@/lib/types/assistant";
 import { formatApiError } from "@/lib/utils/format-error";
 import { cn } from "@/lib/utils/cn";
@@ -44,6 +49,14 @@ function ChatBubble({ message }: { message: ChatMessage }) {
 }
 
 function AssistantChat() {
+  const searchParams = useSearchParams();
+  const { data: businesses } = useSWR("businesses", listBusinesses);
+
+  const [businessOverride, setBusinessOverride] = useState<string | null>(
+    searchParams.get("business")
+  );
+  const businessSlug = businessOverride ?? businesses?.[0]?.slug ?? null;
+
   const [messages, setMessages] = useState<ChatMessage[]>([greeting]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +65,7 @@ function AssistantChat() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!input.trim() || isSending) return;
+    if (!input.trim() || isSending || !businessSlug) return;
 
     const nextMessages = [...messages, { role: "user", content: input.trim() } as ChatMessage];
     setMessages(nextMessages);
@@ -61,7 +74,7 @@ function AssistantChat() {
     setIsSending(true);
 
     try {
-      const reply = await sendChatMessage(nextMessages);
+      const reply = await sendChatMessage(nextMessages, businessSlug);
       setMessages([...nextMessages, { role: "assistant", content: reply }]);
     } catch (err) {
       setError(formatApiError(err));
@@ -77,6 +90,23 @@ function AssistantChat() {
         <CardTitle className="text-base">Assistente de agendamento</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {businesses && businesses.length > 1 && (
+          <div>
+            <Label htmlFor="business">Negócio</Label>
+            <Select
+              id="business"
+              value={businessSlug ?? ""}
+              onChange={(e) => setBusinessOverride(e.target.value)}
+            >
+              {businesses.map((business) => (
+                <option key={business.id} value={business.slug}>
+                  {business.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+
         <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-lg border border-border p-4">
           {messages.map((message, index) => (
             <ChatBubble key={index} message={message} />
@@ -105,7 +135,7 @@ function AssistantChat() {
               }
             }}
           />
-          <Button type="submit" disabled={isSending || !input.trim()}>
+          <Button type="submit" disabled={isSending || !input.trim() || !businessSlug}>
             <Send className="h-4 w-4" />
             Enviar
           </Button>
@@ -120,7 +150,9 @@ export default function AssistentePage() {
     <RequireAuth>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
         <h1 className="mb-6 text-2xl font-semibold text-foreground">Assistente de agendamento</h1>
-        <AssistantChat />
+        <Suspense>
+          <AssistantChat />
+        </Suspense>
       </main>
     </RequireAuth>
   );

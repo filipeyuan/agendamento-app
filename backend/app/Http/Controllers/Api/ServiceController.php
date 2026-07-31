@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Http\Resources\ServiceResource;
+use App\Models\Business;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -18,11 +19,21 @@ use Illuminate\Http\Response;
 class ServiceController extends Controller
 {
     /**
-     * Lista os serviços ativos.
+     * Lista os serviços ativos de um negócio.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $services = Service::query()->where('active', true)->latest()->get();
+        $request->validate([
+            'business' => ['required', 'string', 'exists:businesses,slug'],
+        ]);
+
+        $business = Business::where('slug', $request->string('business'))->firstOrFail();
+
+        $services = Service::query()
+            ->where('business_id', $business->id)
+            ->where('active', true)
+            ->latest()
+            ->get();
 
         return ServiceResource::collection($services);
     }

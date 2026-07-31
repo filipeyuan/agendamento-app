@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\NotificationController;
@@ -28,6 +29,9 @@ Route::middleware('throttle:auth')->group(function () {
 
 Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
+
+Route::get('/businesses', [BusinessController::class, 'index']);
+Route::get('/businesses/{business}', [BusinessController::class, 'show']);
 
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}/available-slots', [AppointmentController::class, 'availableSlots']);

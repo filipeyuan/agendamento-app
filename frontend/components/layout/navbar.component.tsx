@@ -37,7 +37,7 @@ function NavLink({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname === href.split("?")[0];
 
   return (
     <Link
@@ -117,7 +117,10 @@ export function Navbar() {
           <NavLink href="/admin/horarios" icon={Clock}>
             Horários
           </NavLink>
-          <NavLink href="/assistente" icon={Sparkles}>
+          <NavLink
+            href={user.business ? `/assistente?business=${user.business.slug}` : "/assistente"}
+            icon={Sparkles}
+          >
             Assistente
           </NavLink>
         </>

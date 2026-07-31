@@ -1,3 +1,4 @@
+import type { Business } from "@/lib/types/businesses";
 import type { Service } from "@/lib/types/services";
 
 export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
@@ -45,6 +46,7 @@ export interface Appointment {
   end_at: string;
   notes: string | null;
   service: Service;
+  business: Business;
   client?: {
     id: number;
     name: string;
