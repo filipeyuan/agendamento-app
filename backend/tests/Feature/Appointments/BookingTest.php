@@ -6,6 +6,7 @@ namespace Tests\Feature\Appointments;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Models\BusinessHour;
 use App\Models\GoogleCalendarConnection;
 use App\Models\ScheduleBlock;
@@ -20,12 +21,16 @@ class BookingTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected Business $business;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->business = Business::factory()->create();
+
         foreach (range(0, 6) as $dayOfWeek) {
-            BusinessHour::factory()->create(['day_of_week' => $dayOfWeek]);
+            BusinessHour::factory()->create(['business_id' => $this->business->id, 'day_of_week' => $dayOfWeek]);
         }
     }
 
@@ -40,7 +45,7 @@ class BookingTest extends TestCase
         ]);
 
         $client = User::factory()->create();
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         $response = $this->actingAs($client)->postJson('/api/appointments', [
@@ -64,7 +69,7 @@ class BookingTest extends TestCase
     #[Test]
     public function booking_a_slot_that_conflicts_returns_409(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         Appointment::factory()->create([
@@ -91,7 +96,7 @@ class BookingTest extends TestCase
         ]);
 
         $client = User::factory()->create();
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         $response = $this->actingAs($client)->postJson('/api/appointments', [
@@ -109,7 +114,7 @@ class BookingTest extends TestCase
     #[Test]
     public function guests_cannot_book_an_appointment(): void
     {
-        $service = Service::factory()->create();
+        $service = Service::factory()->create(['business_id' => $this->business->id]);
 
         $response = $this->postJson('/api/appointments', [
             'service_id' => $service->id,
@@ -190,7 +195,7 @@ class BookingTest extends TestCase
     #[Test]
     public function available_slots_exclude_already_booked_times(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $date = now()->addDay()->toDateString();
 
         Appointment::factory()->create([
@@ -202,6 +207,7 @@ class BookingTest extends TestCase
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
 
         $response->assertOk();
+        $this->assertNotEmpty($response->json('slots'));
         $this->assertNotContains(
             now()->parse("{$date} 10:00:00")->toIso8601String(),
             $response->json('slots'),
@@ -211,10 +217,10 @@ class BookingTest extends TestCase
     #[Test]
     public function available_slots_are_empty_when_business_is_closed_that_day(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $date = now()->addDay();
 
-        BusinessHour::query()->where('day_of_week', $date->dayOfWeek)->update(['is_open' => false]);
+        BusinessHour::query()->where('business_id', $this->business->id)->where('day_of_week', $date->dayOfWeek)->update(['is_open' => false]);
 
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date->toDateString()}");
 
@@ -225,10 +231,11 @@ class BookingTest extends TestCase
     #[Test]
     public function available_slots_exclude_a_scheduled_block(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $date = now()->addDay()->toDateString();
 
         ScheduleBlock::factory()->create([
+            'business_id' => $this->business->id,
             'date' => $date,
             'start_time' => '10:00',
             'end_time' => '10:30',
@@ -237,6 +244,7 @@ class BookingTest extends TestCase
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
 
         $response->assertOk();
+        $this->assertNotEmpty($response->json('slots'));
         $this->assertNotContains(
             now()->parse("{$date} 10:00:00")->toIso8601String(),
             $response->json('slots'),
@@ -246,8 +254,8 @@ class BookingTest extends TestCase
     #[Test]
     public function available_slots_exclude_busy_ranges_from_a_connected_google_calendar(): void
     {
-        GoogleCalendarConnection::factory()->create();
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        GoogleCalendarConnection::factory()->create(['business_id' => $this->business->id]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $date = now()->addDay()->toDateString();
 
         Http::fake([
@@ -265,6 +273,7 @@ class BookingTest extends TestCase
         $response = $this->getJson("/api/services/{$service->id}/available-slots?date={$date}");
 
         $response->assertOk();
+        $this->assertNotEmpty($response->json('slots'));
         $this->assertNotContains(
             now()->parse("{$date} 10:00:00")->toIso8601String(),
             $response->json('slots'),

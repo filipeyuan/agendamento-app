@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Business;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,6 +28,7 @@ class ServiceFactory extends Factory
             'price' => fake()->randomFloat(2, 20, 200),
             'active' => true,
             'created_by' => User::factory(),
+            'business_id' => Business::factory(),
         ];
     }
 }

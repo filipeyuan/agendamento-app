@@ -21,6 +21,6 @@ class ScheduleBlockPolicy
 
     public function delete(User $user, ScheduleBlock $scheduleBlock): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && $user->business_id === $scheduleBlock->business_id;
     }
 }

@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -16,8 +17,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property UserRole $role
+ * @property int|null $business_id
  */
-#[Fillable(['name', 'email', 'password', 'phone'])]
+#[Fillable(['name', 'email', 'password', 'phone', 'business_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -27,6 +29,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;
+    }
+
+    /**
+     * @return BelongsTo<Business, $this>
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
     }
 
     /**

@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $expires_at
  * @property string $calendar_id
  */
-#[Fillable(['access_token', 'refresh_token', 'expires_at', 'calendar_id', 'connected_by'])]
+#[Fillable(['access_token', 'refresh_token', 'expires_at', 'calendar_id', 'connected_by', 'business_id'])]
 class GoogleCalendarConnection extends Model
 {
     /** @use HasFactory<GoogleCalendarConnectionFactory> */
@@ -29,6 +29,14 @@ class GoogleCalendarConnection extends Model
     public function connectedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'connected_by');
+    }
+
+    /**
+     * @return BelongsTo<Business, $this>
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
     }
 
     protected function casts(): array

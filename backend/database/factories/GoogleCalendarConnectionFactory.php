@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Business;
 use App\Models\GoogleCalendarConnection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +21,7 @@ class GoogleCalendarConnectionFactory extends Factory
     public function definition(): array
     {
         return [
+            'business_id' => Business::factory(),
             'access_token' => 'access-token',
             'refresh_token' => 'refresh-token',
             'expires_at' => now()->addHour(),

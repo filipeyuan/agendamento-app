@@ -33,13 +33,19 @@ class BookingService
     {
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
 
-        $businessHour = BusinessHour::query()->where('day_of_week', $dayOfWeek)->first();
+        $businessHour = BusinessHour::query()
+            ->where('business_id', $service->business_id)
+            ->where('day_of_week', $dayOfWeek)
+            ->first();
 
         if (! $businessHour || ! $businessHour->is_open) {
             return [];
         }
 
-        $blocks = ScheduleBlock::query()->whereDate('date', $date)->get();
+        $blocks = ScheduleBlock::query()
+            ->where('business_id', $service->business_id)
+            ->whereDate('date', $date)
+            ->get();
 
         if ($blocks->contains(fn (ScheduleBlock $block) => $block->isAllDay())) {
             return [];
@@ -51,6 +57,7 @@ class BookingService
         $duration = $service->duration_minutes;
 
         $busyRanges = Appointment::query()
+            ->where('business_id', $service->business_id)
             ->active()
             ->whereBetween('start_at', [$businessStart->clone()->subDay(), $businessEnd->clone()->addDay()])
             ->get(['start_at', 'end_at'])
@@ -59,7 +66,7 @@ class BookingService
                 Carbon::parse("{$date} {$block->start_time}"),
                 Carbon::parse("{$date} {$block->end_time}"),
             ]))
-            ->concat($this->googleCalendar->getBusyRanges($businessStart, $businessEnd));
+            ->concat($this->googleCalendar->getBusyRanges($businessStart, $businessEnd, $service->business_id));
 
         $slots = [];
 
@@ -83,11 +90,12 @@ class BookingService
         $endAt = $startAt->clone()->addMinutes($service->duration_minutes);
 
         return DB::transaction(function () use ($client, $service, $startAt, $endAt, $notes, $source) {
-            $this->assertSlotFree($startAt, $endAt);
+            $this->assertSlotFree($service->business_id, $startAt, $endAt);
 
             return Appointment::create([
                 'user_id' => $client->id,
                 'service_id' => $service->id,
+                'business_id' => $service->business_id,
                 'start_at' => $startAt,
                 'end_at' => $endAt,
                 'status' => AppointmentStatus::Pending,
@@ -122,11 +130,12 @@ class BookingService
                 $startAt = $firstStartAt->clone()->addWeeks($i);
                 $endAt = $startAt->clone()->addMinutes($duration);
 
-                $this->assertSlotFree($startAt, $endAt);
+                $this->assertSlotFree($service->business_id, $startAt, $endAt);
 
                 $appointments->push(Appointment::create([
                     'user_id' => $client->id,
                     'service_id' => $service->id,
+                    'business_id' => $service->business_id,
                     'start_at' => $startAt,
                     'end_at' => $endAt,
                     'status' => AppointmentStatus::Pending,
@@ -157,7 +166,7 @@ class BookingService
         $newEndAt = $newStartAt->clone()->addMinutes($duration);
 
         DB::transaction(function () use ($appointment, $newStartAt, $newEndAt) {
-            $this->assertSlotFree($newStartAt, $newEndAt, excludeAppointmentId: $appointment->id);
+            $this->assertSlotFree($appointment->business_id, $newStartAt, $newEndAt, excludeAppointmentId: $appointment->id);
 
             $appointment->update([
                 'start_at' => $newStartAt,
@@ -166,12 +175,12 @@ class BookingService
         });
 
         if ($appointment->google_event_id) {
-            $oldEventId = $appointment->google_event_id;
+            $oldAppointment = clone $appointment;
             $appointment->loadMissing(['service', 'user']);
             $appointment->update([
                 'google_event_id' => $this->googleCalendar->createEvent($appointment),
             ]);
-            $this->googleCalendar->deleteEvent($oldEventId);
+            $this->googleCalendar->deleteEvent($oldAppointment);
         }
 
         return $appointment->refresh();
@@ -188,7 +197,7 @@ class BookingService
         $appointment->update(['status' => AppointmentStatus::Cancelled]);
 
         if ($appointment->google_event_id) {
-            $this->googleCalendar->deleteEvent($appointment->google_event_id);
+            $this->googleCalendar->deleteEvent($appointment);
             $appointment->update(['google_event_id' => null]);
         }
 
@@ -210,9 +219,10 @@ class BookingService
         }
     }
 
-    private function assertSlotFree(Carbon $startAt, Carbon $endAt, ?int $excludeAppointmentId = null): void
+    private function assertSlotFree(int $businessId, Carbon $startAt, Carbon $endAt, ?int $excludeAppointmentId = null): void
     {
         $conflict = Appointment::query()
+            ->where('business_id', $businessId)
             ->overlapping($startAt, $endAt)
             ->when($excludeAppointmentId, fn ($query, $id) => $query->whereKeyNot($id))
             ->lockForUpdate()

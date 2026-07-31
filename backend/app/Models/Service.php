@@ -11,7 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'description', 'duration_minutes', 'price', 'active', 'created_by'])]
+/**
+ * @property int $business_id
+ */
+#[Fillable(['name', 'description', 'duration_minutes', 'price', 'active', 'created_by', 'business_id'])]
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
@@ -23,6 +26,14 @@ class Service extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * @return BelongsTo<Business, $this>
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
     }
 
     /**

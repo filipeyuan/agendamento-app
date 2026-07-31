@@ -10,7 +10,9 @@ use App\Enums\UserRole;
 use App\Mail\AppointmentCancelledMail;
 use App\Mail\AppointmentConfirmedMail;
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Models\GoogleCalendarConnection;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -22,13 +24,25 @@ class AppointmentStatusTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @return array{0: User, 1: Service}
+     */
+    private function makeAdminAndService(): array
+    {
+        $business = Business::factory()->create();
+        $admin = User::factory()->admin()->create(['business_id' => $business->id]);
+        $service = Service::factory()->create(['business_id' => $business->id]);
+
+        return [$admin, $service];
+    }
+
     #[Test]
     public function admin_can_confirm_an_appointment(): void
     {
         Mail::fake();
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
+        [$admin, $service] = $this->makeAdminAndService();
+        $appointment = Appointment::factory()->create(['service_id' => $service->id, 'status' => AppointmentStatus::Pending]);
 
         $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
             'status' => AppointmentStatus::Confirmed->value,
@@ -49,8 +63,8 @@ class AppointmentStatusTest extends TestCase
     {
         Mail::fake();
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
+        [$admin, $service] = $this->makeAdminAndService();
+        $appointment = Appointment::factory()->create(['service_id' => $service->id, 'status' => AppointmentStatus::Pending]);
 
         $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
             'status' => AppointmentStatus::Cancelled->value,
@@ -63,13 +77,13 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function confirming_an_appointment_creates_a_google_calendar_event_when_connected(): void
     {
-        GoogleCalendarConnection::factory()->create();
+        [$admin, $service] = $this->makeAdminAndService();
+        GoogleCalendarConnection::factory()->create(['business_id' => $service->business_id]);
         Http::fake([
             'www.googleapis.com/*' => Http::response(['id' => 'google-event-123']),
         ]);
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Pending]);
+        $appointment = Appointment::factory()->create(['service_id' => $service->id, 'status' => AppointmentStatus::Pending]);
 
         $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
             'status' => AppointmentStatus::Confirmed->value,
@@ -85,13 +99,14 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function cancelling_an_appointment_removes_its_google_calendar_event(): void
     {
-        GoogleCalendarConnection::factory()->create();
+        [$admin, $service] = $this->makeAdminAndService();
+        GoogleCalendarConnection::factory()->create(['business_id' => $service->business_id]);
         Http::fake([
             'www.googleapis.com/*' => Http::response([], 204),
         ]);
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
         $appointment = Appointment::factory()->create([
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Confirmed,
             'google_event_id' => 'google-event-123',
         ]);
@@ -115,8 +130,9 @@ class AppointmentStatusTest extends TestCase
             'api.stripe.com/v1/refunds' => Http::response(['id' => 're_test_789']),
         ]);
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        [$admin, $service] = $this->makeAdminAndService();
         $appointment = Appointment::factory()->create([
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Confirmed,
             'payment_status' => PaymentStatus::Paid,
             'stripe_payment_intent_id' => 'pi_test_789',
@@ -151,8 +167,8 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function it_rejects_setting_status_back_to_pending(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $appointment = Appointment::factory()->create(['status' => AppointmentStatus::Confirmed]);
+        [$admin, $service] = $this->makeAdminAndService();
+        $appointment = Appointment::factory()->create(['service_id' => $service->id, 'status' => AppointmentStatus::Confirmed]);
 
         $response = $this->actingAs($admin)->patchJson("/api/admin/appointments/{$appointment->id}/status", [
             'status' => AppointmentStatus::Pending->value,
@@ -164,19 +180,22 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function admin_can_filter_appointments_by_date_and_status(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        [$admin, $service] = $this->makeAdminAndService();
 
         Appointment::factory()->create([
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Pending,
             'start_at' => '2026-08-10 10:00:00',
             'end_at' => '2026-08-10 10:30:00',
         ]);
         Appointment::factory()->create([
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Confirmed,
             'start_at' => '2026-08-10 11:00:00',
             'end_at' => '2026-08-10 11:30:00',
         ]);
         Appointment::factory()->create([
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Pending,
             'start_at' => '2026-08-11 09:00:00',
             'end_at' => '2026-08-11 09:30:00',
@@ -191,11 +210,11 @@ class AppointmentStatusTest extends TestCase
     #[Test]
     public function admin_can_filter_appointments_by_date_range(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        [$admin, $service] = $this->makeAdminAndService();
 
-        Appointment::factory()->create(['start_at' => '2026-08-09 23:00:00', 'end_at' => '2026-08-09 23:30:00']);
-        Appointment::factory()->create(['start_at' => '2026-08-10 10:00:00', 'end_at' => '2026-08-10 10:30:00']);
-        Appointment::factory()->create(['start_at' => '2026-08-16 09:00:00', 'end_at' => '2026-08-16 09:30:00']);
+        Appointment::factory()->create(['service_id' => $service->id, 'start_at' => '2026-08-09 23:00:00', 'end_at' => '2026-08-09 23:30:00']);
+        Appointment::factory()->create(['service_id' => $service->id, 'start_at' => '2026-08-10 10:00:00', 'end_at' => '2026-08-10 10:30:00']);
+        Appointment::factory()->create(['service_id' => $service->id, 'start_at' => '2026-08-16 09:00:00', 'end_at' => '2026-08-16 09:30:00']);
 
         $response = $this->actingAs($admin)->getJson('/api/admin/appointments?from=2026-08-10&to=2026-08-16');
 

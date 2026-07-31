@@ -9,6 +9,7 @@ use App\Enums\AppointmentStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -23,7 +24,12 @@ class DemoAppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $services = Service::all();
+        $business = Business::where('slug', 'negocio-padrao')->first();
+        if (! $business) {
+            return;
+        }
+
+        $services = Service::where('business_id', $business->id)->get();
         if ($services->isEmpty()) {
             return;
         }
@@ -72,6 +78,7 @@ class DemoAppointmentSeeder extends Seeder
             Appointment::create([
                 'user_id' => $client->id,
                 'service_id' => $service->id,
+                'business_id' => $business->id,
                 'start_at' => $startAt,
                 'end_at' => $startAt->clone()->addMinutes($service->duration_minutes),
                 'status' => $status,

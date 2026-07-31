@@ -21,7 +21,7 @@ class AppointmentPolicy
 
     public function updateStatus(User $user, Appointment $appointment): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && $user->business_id === $appointment->business_id;
     }
 
     public function manageOwn(User $user, Appointment $appointment): bool

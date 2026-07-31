@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\AppointmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,6 +20,9 @@ class AnalyticsController extends Controller
     {
         $this->authorize('viewAny', Appointment::class);
 
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
         $request->validate([
             'days' => ['sometimes', 'integer', 'min:1', 'max:365'],
         ]);
@@ -28,6 +32,7 @@ class AnalyticsController extends Controller
         $to = now()->endOfDay();
 
         $appointments = Appointment::query()
+            ->where('business_id', $user->business_id)
             ->with('service')
             ->whereBetween('start_at', [$from, $to])
             ->get();

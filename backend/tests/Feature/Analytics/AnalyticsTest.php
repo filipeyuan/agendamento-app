@@ -20,8 +20,8 @@ class AnalyticsTest extends TestCase
     #[Test]
     public function admin_can_view_the_analytics_summary(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $service = Service::factory()->create(['name' => 'Corte de cabelo', 'price' => 40]);
+        $admin = User::factory()->admin()->create();
+        $service = Service::factory()->create(['business_id' => $admin->business_id, 'name' => 'Corte de cabelo', 'price' => 40]);
 
         Appointment::factory()->create([
             'service_id' => $service->id,
@@ -68,8 +68,8 @@ class AnalyticsTest extends TestCase
     #[Test]
     public function appointments_outside_the_range_are_not_counted(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $service = Service::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $service = Service::factory()->create(['business_id' => $admin->business_id]);
 
         Appointment::factory()->create([
             'service_id' => $service->id,

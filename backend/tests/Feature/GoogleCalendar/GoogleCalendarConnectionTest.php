@@ -20,7 +20,7 @@ class GoogleCalendarConnectionTest extends TestCase
     #[Test]
     public function admin_can_get_the_connect_url(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->getJson('/api/admin/google-calendar/connect');
 
@@ -41,7 +41,7 @@ class GoogleCalendarConnectionTest extends TestCase
     #[Test]
     public function callback_stores_the_connection_with_a_valid_state(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
         Cache::put('google-calendar-oauth-state:test-state', $admin->id, now()->addMinutes(10));
 
         Http::fake([
@@ -72,13 +72,13 @@ class GoogleCalendarConnectionTest extends TestCase
     #[Test]
     public function admin_can_check_connection_status(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->getJson('/api/admin/google-calendar/status');
         $response->assertOk();
         $response->assertJsonPath('connected', false);
 
-        GoogleCalendarConnection::factory()->create();
+        GoogleCalendarConnection::factory()->create(['business_id' => $admin->business_id]);
 
         $response = $this->actingAs($admin)->getJson('/api/admin/google-calendar/status');
         $response->assertOk();
@@ -88,8 +88,8 @@ class GoogleCalendarConnectionTest extends TestCase
     #[Test]
     public function admin_can_disconnect(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        GoogleCalendarConnection::factory()->create();
+        $admin = User::factory()->admin()->create();
+        GoogleCalendarConnection::factory()->create(['business_id' => $admin->business_id]);
 
         $response = $this->actingAs($admin)->deleteJson('/api/admin/google-calendar/disconnect');
 

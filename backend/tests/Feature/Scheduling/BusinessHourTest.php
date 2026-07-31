@@ -18,9 +18,9 @@ class BusinessHourTest extends TestCase
     #[Test]
     public function admin_can_list_business_hours(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        BusinessHour::factory()->create(['day_of_week' => 0, 'is_open' => false, 'start_time' => null, 'end_time' => null]);
-        BusinessHour::factory()->create(['day_of_week' => 1, 'start_time' => '09:00', 'end_time' => '18:00']);
+        $admin = User::factory()->admin()->create();
+        BusinessHour::factory()->create(['business_id' => $admin->business_id, 'day_of_week' => 0, 'is_open' => false, 'start_time' => null, 'end_time' => null]);
+        BusinessHour::factory()->create(['business_id' => $admin->business_id, 'day_of_week' => 1, 'start_time' => '09:00', 'end_time' => '18:00']);
 
         $response = $this->actingAs($admin)->getJson('/api/admin/business-hours');
 
@@ -44,7 +44,7 @@ class BusinessHourTest extends TestCase
     #[Test]
     public function admin_can_update_business_hours(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
         $hours = collect(range(0, 6))->map(fn (int $day) => [
             'day_of_week' => $day,
             'is_open' => $day !== 0,

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * @property int $business_id
  * @property Carbon $start_at
  * @property Carbon $end_at
  * @property AppointmentStatus $status
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Service $service
  */
 #[Fillable([
-    'user_id', 'service_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes',
+    'user_id', 'service_id', 'business_id', 'confirmed_by', 'start_at', 'end_at', 'status', 'source', 'notes',
     'google_event_id', 'payment_status', 'stripe_checkout_session_id', 'stripe_payment_intent_id', 'recurring_group_id',
 ])]
 class Appointment extends Model
@@ -39,6 +40,14 @@ class Appointment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Business, $this>
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
     }
 
     /**

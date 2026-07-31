@@ -70,6 +70,9 @@ class AppointmentController extends Controller
     {
         $this->authorize('viewAny', Appointment::class);
 
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
         $request->validate([
             'date' => ['sometimes', 'date'],
             'from' => ['sometimes', 'date'],
@@ -78,6 +81,7 @@ class AppointmentController extends Controller
         ]);
 
         $appointments = Appointment::query()
+            ->where('business_id', $user->business_id)
             ->with(['service', 'user'])
             ->when($request->date, fn ($query, $date) => $query->whereDate('start_at', $date))
             ->when($request->from, fn ($query, $from) => $query->where('start_at', '>=', $from))
@@ -259,7 +263,7 @@ class AppointmentController extends Controller
 
         if ($newStatus === AppointmentStatus::Cancelled) {
             if ($appointment->google_event_id) {
-                $googleCalendar->deleteEvent($appointment->google_event_id);
+                $googleCalendar->deleteEvent($appointment);
                 $appointment->update(['google_event_id' => null]);
             }
 

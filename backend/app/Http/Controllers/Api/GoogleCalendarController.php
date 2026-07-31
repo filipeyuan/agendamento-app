@@ -57,21 +57,27 @@ class GoogleCalendarController extends Controller
     /**
      * Status da conexão com o Google Calendar.
      */
-    public function status(GoogleCalendarService $googleCalendar): JsonResponse
+    public function status(Request $request, GoogleCalendarService $googleCalendar): JsonResponse
     {
         $this->authorize('viewAny', GoogleCalendarConnection::class);
 
-        return response()->json(['connected' => $googleCalendar->isConnected()]);
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        return response()->json(['connected' => $googleCalendar->isConnected((int) $user->business_id)]);
     }
 
     /**
      * Desconecta o Google Calendar.
      */
-    public function disconnect(GoogleCalendarService $googleCalendar): Response
+    public function disconnect(Request $request, GoogleCalendarService $googleCalendar): Response
     {
         $this->authorize('manage', GoogleCalendarConnection::class);
 
-        $googleCalendar->disconnect();
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $googleCalendar->disconnect((int) $user->business_id);
 
         return response()->noContent();
     }

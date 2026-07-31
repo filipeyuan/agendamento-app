@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateBusinessHoursRequest;
 use App\Http\Resources\BusinessHourResource;
 use App\Models\BusinessHour;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class BusinessHourController extends Controller
@@ -15,11 +17,14 @@ class BusinessHourController extends Controller
     /**
      * Lista o horário de atendimento dos 7 dias da semana.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', BusinessHour::class);
 
-        $hours = BusinessHour::query()->orderBy('day_of_week')->get();
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $hours = BusinessHour::query()->where('business_id', $user->business_id)->orderBy('day_of_week')->get();
 
         return BusinessHourResource::collection($hours);
     }
@@ -31,9 +36,12 @@ class BusinessHourController extends Controller
     {
         $this->authorize('update', BusinessHour::class);
 
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
         foreach ($request->validated('hours') as $day) {
             BusinessHour::query()->updateOrCreate(
-                ['day_of_week' => $day['day_of_week']],
+                ['business_id' => $user->business_id, 'day_of_week' => $day['day_of_week']],
                 [
                     'is_open' => $day['is_open'],
                     'start_time' => $day['is_open'] ? $day['start_time'] : null,
@@ -42,7 +50,7 @@ class BusinessHourController extends Controller
             );
         }
 
-        $hours = BusinessHour::query()->orderBy('day_of_week')->get();
+        $hours = BusinessHour::query()->where('business_id', $user->business_id)->orderBy('day_of_week')->get();
 
         return BusinessHourResource::collection($hours);
     }

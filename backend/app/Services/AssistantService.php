@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\AppointmentSource;
 use App\Exceptions\AppointmentConflictException;
+use App\Models\Business;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
@@ -24,7 +25,7 @@ class AssistantService
      * @param  array<int, array{role: string, content: string}>  $history
      * @return array{message: string}
      */
-    public function reply(User $client, array $history): array
+    public function reply(User $client, array $history, Business $business): array
     {
         $apiKey = config('services.gemini.api_key');
 
@@ -59,7 +60,7 @@ class AssistantService
             $contents[] = ['role' => 'model', 'parts' => [$functionCallPart]];
             $contents[] = [
                 'role' => 'user',
-                'parts' => [['functionResponse' => ['name' => $name, 'response' => $this->executeTool($client, $name, $args)]]],
+                'parts' => [['functionResponse' => ['name' => $name, 'response' => $this->executeTool($client, $name, $args, $business)]]],
             ];
         }
 
@@ -164,12 +165,12 @@ class AssistantService
      * @param  array<string, mixed>  $args
      * @return array<string, mixed>
      */
-    private function executeTool(User $client, string $name, array $args): array
+    private function executeTool(User $client, string $name, array $args, Business $business): array
     {
         return match ($name) {
-            'list_services' => $this->listServices(),
-            'check_available_slots' => $this->checkAvailableSlots($args),
-            'book_appointment' => $this->createBooking($client, $args),
+            'list_services' => $this->listServices($business),
+            'check_available_slots' => $this->checkAvailableSlots($args, $business),
+            'book_appointment' => $this->createBooking($client, $args, $business),
             default => ['error' => "Ferramenta desconhecida: {$name}"],
         };
     }
@@ -177,10 +178,13 @@ class AssistantService
     /**
      * @return array<string, mixed>
      */
-    private function listServices(): array
+    private function listServices(Business $business): array
     {
         /** @var Collection<int, Service> $services */
-        $services = Service::query()->where('active', true)->get(['id', 'name', 'duration_minutes', 'price']);
+        $services = Service::query()
+            ->where('business_id', $business->id)
+            ->where('active', true)
+            ->get(['id', 'name', 'duration_minutes', 'price']);
 
         return ['services' => $services->map(fn (Service $service) => [
             'id' => $service->id,
@@ -193,22 +197,22 @@ class AssistantService
     /**
      * @param  array<string, mixed>  $args
      */
-    private function findService(array $args): ?Service
+    private function findService(array $args, Business $business): ?Service
     {
         if (! isset($args['service_id']) || ! is_numeric($args['service_id'])) {
             return null;
         }
 
-        return Service::query()->find((int) $args['service_id']);
+        return Service::query()->where('business_id', $business->id)->find((int) $args['service_id']);
     }
 
     /**
      * @param  array<string, mixed>  $args
      * @return array<string, mixed>
      */
-    private function checkAvailableSlots(array $args): array
+    private function checkAvailableSlots(array $args, Business $business): array
     {
-        $service = $this->findService($args);
+        $service = $this->findService($args, $business);
 
         if (! $service) {
             return ['error' => 'Serviço não encontrado.'];
@@ -223,9 +227,9 @@ class AssistantService
      * @param  array<string, mixed>  $args
      * @return array<string, mixed>
      */
-    private function createBooking(User $client, array $args): array
+    private function createBooking(User $client, array $args, Business $business): array
     {
-        $service = $this->findService($args);
+        $service = $this->findService($args, $business);
 
         if (! $service) {
             return ['error' => 'Serviço não encontrado.'];

@@ -31,7 +31,7 @@ class ServiceCrudTest extends TestCase
     #[Test]
     public function admin_can_create_a_service(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->postJson('/api/admin/services', [
             'name' => 'Barba',
@@ -62,8 +62,8 @@ class ServiceCrudTest extends TestCase
     #[Test]
     public function admin_can_update_a_service(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $service = Service::factory()->create(['price' => 50]);
+        $admin = User::factory()->admin()->create();
+        $service = Service::factory()->create(['business_id' => $admin->business_id, 'price' => 50]);
 
         $response = $this->actingAs($admin)->putJson("/api/admin/services/{$service->id}", [
             'name' => $service->name,
@@ -78,8 +78,8 @@ class ServiceCrudTest extends TestCase
     #[Test]
     public function admin_can_delete_a_service(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $service = Service::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $service = Service::factory()->create(['business_id' => $admin->business_id]);
 
         $response = $this->actingAs($admin)->deleteJson("/api/admin/services/{$service->id}");
 
