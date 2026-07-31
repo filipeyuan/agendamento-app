@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
-use App\Models\User;
+use App\Models\Business;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin User */
-class UserResource extends JsonResource
+/** @mixin Business */
+class BusinessResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
@@ -19,10 +19,7 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
-            'role' => $this->role,
-            'phone' => $this->phone,
-            'business' => $this->when($this->business_id !== null, fn () => BusinessResource::make($this->whenLoaded('business'))),
+            'slug' => $this->slug,
         ];
     }
 }

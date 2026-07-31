@@ -82,7 +82,7 @@ const faq = [
   {
     question: "Dá pra ter múltiplos admins ou múltiplos prestadores?",
     answer:
-      "Hoje o Zelo foi pensado pra um negócio só: um horário de atendimento e um catálogo de serviços compartilhado. Vários usuários podem ter papel de admin, mas todos gerenciam a mesma agenda, não agendas independentes por profissional.",
+      "Sim: o Zelo é multi-tenant. Ao se cadastrar como negócio, você ganha sua própria agenda, catálogo de serviços, horário de atendimento e conexão com o Google Calendar, completamente isolados dos outros negócios cadastrados na plataforma.",
   },
   {
     question: "O Google Calendar sincroniza de verdade?",
