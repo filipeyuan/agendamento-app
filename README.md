@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/filipeyuan/agendamento-app/actions/workflows/ci.yml/badge.svg)
 
-Sistema de agendamento online full stack para negócios de serviço (salões, clínicas, barbearias, estúdios). Cliente escolhe serviço e horário livre, admin gerencia tudo em um painel, com regra de conflito de horário, sincronia com Google Calendar e assistente de agendamento via IA.
+Sistema de agendamento online full stack, multi-tenant, para negócios de serviço (salões, clínicas, barbearias, estúdios). Qualquer negócio se cadastra e ganha sua própria agenda isolada; cliente escolhe o negócio, o serviço e o horário livre; admin gerencia tudo em um painel, com regra de conflito de horário, sincronia com Google Calendar e assistente de agendamento via IA.
 
 Projeto construído em fases, cada uma terminando com algo funcionando e implantado (não só código local).
 
@@ -10,11 +10,12 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 
 ## Funcionalidades
 
+- **Multi-tenant de verdade**: qualquer pessoa se cadastra como negócio e ganha agenda, serviços, horário de atendimento e conexão com o Google Calendar isolados dos demais negócios da plataforma; testes dedicados provam que um negócio não vê nem edita nada de outro
 - **Agendamento sem conflito**: reserva de horário protegida por transação com lock no banco, evita dois clientes marcando o mesmo horário
 - **Horário de atendimento configurável**: horário por dia da semana + bloqueios manuais de data/hora (feriado, viagem, manutenção)
 - **Assistente de agendamento via IA**: chat com Google Gemini que consulta serviços, verifica horários livres e cria o agendamento de verdade via function calling, não é só um chat decorativo
 - **Google Calendar**: agendamentos confirmados viram evento real no Google Calendar do admin, e compromissos pessoais já existentes bloqueiam horários automaticamente
-- **Pagamento na hora de agendar**: checkout real via Stripe, o horário só é reservado enquanto o pagamento estiver pendente e é liberado automaticamente se o cliente não pagar
+- **Pagamento na hora de agendar**: checkout real via Stripe, o horário só é reservado enquanto o pagamento estiver pendente e é liberado automaticamente se o cliente não pagar; cancelar um agendamento pago reembolsa automaticamente via Stripe
 - **Agendamento recorrente**: repetição semanal (até 12 vezes), pago numa única sessão de checkout; se qualquer ocorrência conflitar, nenhuma é criada
 - **Cliente remarca/cancela sozinho**: até 2h antes do horário, sem precisar falar com o admin
 - **Notificações**: e-mail (pagamento confirmado, agendamento confirmado/cancelado/remarcado) via Resend, mais um sino de notificações in-app com contagem de não lidas
@@ -30,7 +31,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
 - **IA:** Google Gemini (function calling)
 - **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional)
-- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 84 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 106 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
 
 ## Deploy
 
@@ -57,5 +58,6 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 6**: Referência visual e mobile. Redesign de UI/UX inspirado em SaaS reais, badges e ícones de estado, otimização do modo mobile
 - [x] **Fase 7**: Pagamento e notificações. Checkout via Stripe, e-mail transacional (Resend), notificações in-app e mensagens de validação em português
 - [x] **Fase 8**: Autoatendimento do cliente. Cancelar/remarcar o próprio agendamento, agendamento recorrente semanal, e ajustes de UX (confirmação antes de cancelar, histórico de notificações)
+- [x] **Fase 9**: Multi-tenant. Reembolso automático via Stripe ao cancelar um agendamento pago, modelo de dados isolado por negócio, cadastro self-service de negócio, navegação multi-negócio pro cliente e testes dedicados de isolamento entre negócios
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).

@@ -47,9 +47,10 @@ Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, aus�
 | Rota | Acesso | Descrição |
 |---|---|---|
 | `/` | público | Home institucional, com status da API em tempo real |
-| `/servicos` | público | Lista de serviços disponíveis |
-| `/login`, `/cadastro` | público | Autenticação |
-| `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre, paga via Stripe Checkout |
+| `/servicos` | público | Lista de negócios cadastrados na plataforma |
+| `/negocios/[slug]` | público | Serviços disponíveis de um negócio |
+| `/login`, `/cadastro` | público | Autenticação; cadastro tem opção "tenho um negócio" (cria admin + negócio) |
+| `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre num negócio, paga via Stripe Checkout |
 | `/assistente` | cliente autenticado | Chat com o assistente de agendamento via IA |
 | `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status/pagamento, e cancelar/remarcar sozinho (até 2h antes) |
 | `/admin/servicos` | admin | CRUD de serviços |

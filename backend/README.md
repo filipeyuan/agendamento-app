@@ -1,6 +1,6 @@
 # Backend: Zelo (API Laravel)
 
-API REST em Laravel para o sistema de agendamento. Autenticação via Laravel Sanctum (tokens, não cookies), pensada pra ser consumida por um frontend em outro domínio (Next.js na Vercel).
+API REST em Laravel para o sistema de agendamento. Multi-tenant: cada negócio cadastrado tem seus próprios serviços, horário de atendimento, agendamentos e conexão com o Google Calendar, completamente isolados dos demais. Autenticação via Laravel Sanctum (tokens, não cookies), pensada pra ser consumida por um frontend em outro domínio (Next.js na Vercel).
 
 ## Stack
 
@@ -21,7 +21,7 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-A API sobe em `http://127.0.0.1:8000`. O seeder cria um admin (`admin@agendamento.app` / `admin12345`, configurável via `ADMIN_EMAIL`/`ADMIN_PASSWORD`) e alguns serviços de exemplo.
+A API sobe em `http://127.0.0.1:8000`. O seeder cria **2 negócios de demonstração** (cada um com seu admin, horário de atendimento e serviços): o padrão (`admin@agendamento.app` / `admin12345`, configurável via `ADMIN_EMAIL`/`ADMIN_PASSWORD`) e um segundo (`admin.clinica@zelo.test` / `demo12345`), pra provar visualmente o isolamento entre negócios.
 
 ### Alternativa: Docker (sem precisar de PHP/Postgres instalados)
 
@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), notificações in-app e o dashboard de analytics.
+Cobertura de testes: autenticação (registro como cliente ou como admin dono de um negócio novo, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), reembolso automático ao cancelar um agendamento pago, notificações in-app, o dashboard de analytics, e um conjunto dedicado de testes provando o isolamento entre negócios (um admin não vê nem edita nada de outro negócio, mesmo com token válido).
 
 ## Variáveis de ambiente
 
@@ -77,16 +77,23 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | GET | `/api/health` | não | Verifica se a API está no ar |
-| POST | `/api/register` | não | Cria um usuário (sempre role `client`) |
+| POST | `/api/register` | não | Cria um usuário. `account_type: "client"` cria um cliente comum; `account_type: "business"` + `business_name` cria um admin dono de um negócio novo |
 | POST | `/api/login` | não | Autentica e retorna um token Sanctum |
 | POST | `/api/logout` | sim | Revoga o token atual |
-| GET | `/api/me` | sim | Retorna o usuário autenticado |
+| GET | `/api/me` | sim | Retorna o usuário autenticado (inclui o negócio, se for admin) |
+
+### Negócios (multi-tenant)
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/api/businesses` | não | Lista os negócios cadastrados na plataforma |
+| GET | `/api/businesses/{business}` | não | Mostra um negócio pelo slug |
 
 ### Serviços
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| GET | `/api/services` | não | Lista serviços ativos |
+| GET | `/api/services?business={slug}` | não | Lista os serviços ativos de um negócio (`business` é obrigatório) |
 | GET | `/api/services/{service}/available-slots?date=YYYY-MM-DD` | não | Horários livres de um serviço num dia |
 | GET | `/api/admin/services` | admin | Lista todos os serviços (inclusive inativos) |
 | POST | `/api/admin/services` | admin | Cria um serviço |
@@ -118,9 +125,9 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| POST | `/api/assistant/chat` | sim | Envia o histórico da conversa e recebe a resposta do assistente |
+| POST | `/api/assistant/chat` | sim | Envia `business` (slug) + o histórico da conversa e recebe a resposta do assistente |
 
-O assistente usa a API do Gemini com function calling: ele mesmo decide quando consultar os serviços ativos, checar horários livres e criar o agendamento (`App\Services\AssistantService`), sempre a partir de dados reais do banco, nunca inventados.
+O assistente usa a API do Gemini com function calling: ele mesmo decide quando consultar os serviços ativos, checar horários livres e criar o agendamento (`App\Services\AssistantService`), sempre a partir de dados reais do banco (só do negócio informado), nunca inventados.
 
 ### Google Calendar
 
@@ -160,4 +167,4 @@ Usa o sistema nativo de notifications do Laravel (canal `database`), disparada p
 
 ## Regra de conflito de horário
 
-`App\Services\BookingService` calcula os horários livres a partir do horário de atendimento do dia da semana e dos bloqueios cadastrados (ambos configuráveis pelo admin, guardados em `business_hours` e `schedule_blocks`) menos os agendamentos ativos, e valida o conflito de novo no momento da criação (dentro de uma transação com lock), pra evitar corrida entre duas requisições simultâneas.
+`App\Services\BookingService` calcula os horários livres a partir do horário de atendimento do dia da semana e dos bloqueios cadastrados (ambos configuráveis pelo admin, guardados em `business_hours` e `schedule_blocks`, sempre escopados pelo negócio do serviço) menos os agendamentos ativos, e valida o conflito de novo no momento da criação (dentro de uma transação com lock), pra evitar corrida entre duas requisições simultâneas.
