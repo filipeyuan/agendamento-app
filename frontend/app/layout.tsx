@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { SWRConfig } from "swr";
 
 import { Footer } from "@/components/layout/footer.component";
 import { Navbar } from "@/components/layout/navbar.component";
@@ -39,11 +40,20 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <Navbar />
-          {children}
-          <Footer />
-        </AuthProvider>
+        <SWRConfig
+          value={{
+            // O backend hiberna no plano grátis do Render e demora a acordar; sem isso o
+            // SWR desiste rápido demais e mostra erro antes do servidor ter tempo de subir.
+            errorRetryInterval: 3000,
+            errorRetryCount: 8,
+          }}
+        >
+          <AuthProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </AuthProvider>
+        </SWRConfig>
       </body>
     </html>
   );

@@ -134,7 +134,15 @@ function TopServices({ services }: { services: AnalyticsSummary["top_services"] 
 
 function DashboardPanel() {
   const [days, setDays] = useState(30);
-  const { data, error, isLoading } = useSWR(["analytics", days], () => getAnalyticsSummary(days));
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const { data, error, isLoading } = useSWR(["analytics", days], () => getAnalyticsSummary(days), {
+    onErrorRetry: (_err, _key, _config, revalidate, opts) => {
+      setFailedAttempts(opts.retryCount + 1);
+      if (opts.retryCount >= 8) return;
+      setTimeout(() => revalidate(opts), Math.min(3000 * (opts.retryCount + 1), 10000));
+    },
+    onSuccess: () => setFailedAttempts(0),
+  });
 
   const totalAppointments = useMemo(
     () => (data ? Object.values(data.by_status).reduce((sum, n) => sum + n, 0) : 0),
@@ -166,7 +174,14 @@ function DashboardPanel() {
         </div>
       )}
 
-      {error && !isLoading && (
+      {error && !isLoading && failedAttempts <= 3 && (
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <Spinner className="h-4 w-4" />
+          Conectando ao servidor, isso pode levar até 30 segundos na primeira vez do dia...
+        </div>
+      )}
+
+      {error && !isLoading && failedAttempts > 3 && (
         <Alert variant="destructive">
           {formatApiError(error)} Se você entrou há um tempo, tente sair e entrar de novo.
         </Alert>
