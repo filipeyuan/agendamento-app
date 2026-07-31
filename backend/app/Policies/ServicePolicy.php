@@ -21,11 +21,11 @@ class ServicePolicy
 
     public function update(User $user, Service $service): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && $user->business_id === $service->business_id;
     }
 
     public function delete(User $user, Service $service): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && $user->business_id === $service->business_id;
     }
 }

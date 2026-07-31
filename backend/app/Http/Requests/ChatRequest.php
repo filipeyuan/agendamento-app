@@ -19,6 +19,7 @@ class ChatRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'business' => ['required', 'string', 'exists:businesses,slug'],
             'messages' => ['required', 'array', 'min:1', 'max:30'],
             'messages.*.role' => ['required', 'string', 'in:user,assistant'],
             'messages.*.content' => ['required', 'string', 'max:2000'],

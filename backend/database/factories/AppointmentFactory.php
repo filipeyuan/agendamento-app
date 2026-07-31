@@ -30,6 +30,10 @@ class AppointmentFactory extends Factory
         return [
             'user_id' => User::factory(),
             'service_id' => Service::factory(),
+            // Deriva do serviço em vez de criar um Business::factory() próprio, assim um
+            // agendamento sempre pertence ao mesmo negócio do serviço escolhido, mesmo
+            // quando o teste só passa 'service_id' explicitamente.
+            'business_id' => fn (array $attributes) => Service::find($attributes['service_id'])?->business_id,
             'start_at' => $startAt,
             'end_at' => $endAt,
             'status' => AppointmentStatus::Pending,

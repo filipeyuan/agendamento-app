@@ -73,24 +73,27 @@ class GoogleCalendarService
             throw new RuntimeException('Não foi possível conectar ao Google Calendar.');
         }
 
-        GoogleCalendarConnection::query()->delete();
+        $admin = User::findOrFail((int) $connectedBy);
 
-        GoogleCalendarConnection::create([
-            'access_token' => $response->json('access_token'),
-            'refresh_token' => $response->json('refresh_token'),
-            'expires_at' => now()->addSeconds((int) $response->json('expires_in')),
-            'connected_by' => $connectedBy,
-        ]);
+        GoogleCalendarConnection::query()->updateOrCreate(
+            ['business_id' => $admin->business_id],
+            [
+                'access_token' => $response->json('access_token'),
+                'refresh_token' => $response->json('refresh_token'),
+                'expires_at' => now()->addSeconds((int) $response->json('expires_in')),
+                'connected_by' => $connectedBy,
+            ]
+        );
     }
 
-    public function isConnected(): bool
+    public function isConnected(int $businessId): bool
     {
-        return GoogleCalendarConnection::query()->exists();
+        return GoogleCalendarConnection::query()->where('business_id', $businessId)->exists();
     }
 
-    public function disconnect(): void
+    public function disconnect(int $businessId): void
     {
-        GoogleCalendarConnection::query()->delete();
+        GoogleCalendarConnection::query()->where('business_id', $businessId)->delete();
     }
 
     /**
@@ -98,7 +101,7 @@ class GoogleCalendarService
      */
     public function createEvent(Appointment $appointment): ?string
     {
-        $connection = GoogleCalendarConnection::query()->first();
+        $connection = GoogleCalendarConnection::query()->where('business_id', $appointment->business_id)->first();
 
         if (! $connection) {
             return null;
@@ -131,9 +134,9 @@ class GoogleCalendarService
     /**
      * Remove o evento do Google Calendar (ex: agendamento cancelado).
      */
-    public function deleteEvent(string $eventId): void
+    public function deleteEvent(Appointment $appointment): void
     {
-        $connection = GoogleCalendarConnection::query()->first();
+        $connection = GoogleCalendarConnection::query()->where('business_id', $appointment->business_id)->first();
 
         if (! $connection) {
             return;
@@ -142,7 +145,7 @@ class GoogleCalendarService
         $token = $this->freshAccessToken($connection);
 
         $response = Http::withToken($token)->delete(
-            self::CALENDAR_API."/calendars/{$connection->calendar_id}/events/{$eventId}"
+            self::CALENDAR_API."/calendars/{$connection->calendar_id}/events/{$appointment->google_event_id}"
         );
 
         if ($response->failed() && $response->status() !== 410) {
@@ -158,9 +161,9 @@ class GoogleCalendarService
      *
      * @return array<int, array{0: Carbon, 1: Carbon}>
      */
-    public function getBusyRanges(Carbon $start, Carbon $end): array
+    public function getBusyRanges(Carbon $start, Carbon $end, int $businessId): array
     {
-        $connection = GoogleCalendarConnection::query()->first();
+        $connection = GoogleCalendarConnection::query()->where('business_id', $businessId)->first();
 
         if (! $connection) {
             return [];

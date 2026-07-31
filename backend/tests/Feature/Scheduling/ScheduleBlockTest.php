@@ -18,7 +18,7 @@ class ScheduleBlockTest extends TestCase
     #[Test]
     public function admin_can_create_an_all_day_block(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->postJson('/api/admin/schedule-blocks', [
             'date' => now()->addWeek()->toDateString(),
@@ -33,7 +33,7 @@ class ScheduleBlockTest extends TestCase
     #[Test]
     public function admin_can_create_a_partial_block(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->postJson('/api/admin/schedule-blocks', [
             'date' => now()->addWeek()->toDateString(),
@@ -62,9 +62,9 @@ class ScheduleBlockTest extends TestCase
     #[Test]
     public function admin_can_list_blocks_in_a_period(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        ScheduleBlock::factory()->create(['date' => '2026-08-01']);
-        ScheduleBlock::factory()->create(['date' => '2026-09-01']);
+        $admin = User::factory()->admin()->create();
+        ScheduleBlock::factory()->create(['business_id' => $admin->business_id, 'date' => '2026-08-01']);
+        ScheduleBlock::factory()->create(['business_id' => $admin->business_id, 'date' => '2026-09-01']);
 
         $response = $this->actingAs($admin)->getJson('/api/admin/schedule-blocks?from=2026-07-01&to=2026-08-31');
 
@@ -76,8 +76,8 @@ class ScheduleBlockTest extends TestCase
     #[Test]
     public function admin_can_delete_a_block(): void
     {
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
-        $block = ScheduleBlock::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $block = ScheduleBlock::factory()->create(['business_id' => $admin->business_id]);
 
         $response = $this->actingAs($admin)->deleteJson("/api/admin/schedule-blocks/{$block->id}");
 

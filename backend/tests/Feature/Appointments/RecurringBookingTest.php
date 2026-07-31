@@ -7,6 +7,7 @@ namespace Tests\Feature\Appointments;
 use App\Enums\PaymentStatus;
 use App\Mail\RecurringPaymentConfirmedMail;
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Models\BusinessHour;
 use App\Models\Service;
 use App\Models\User;
@@ -21,12 +22,16 @@ class RecurringBookingTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected Business $business;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->business = Business::factory()->create();
+
         foreach (range(0, 6) as $dayOfWeek) {
-            BusinessHour::factory()->create(['day_of_week' => $dayOfWeek]);
+            BusinessHour::factory()->create(['business_id' => $this->business->id, 'day_of_week' => $dayOfWeek]);
         }
     }
 
@@ -41,7 +46,7 @@ class RecurringBookingTest extends TestCase
         ]);
 
         $client = User::factory()->create();
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         $response = $this->actingAs($client)->postJson('/api/appointments', [
@@ -68,7 +73,7 @@ class RecurringBookingTest extends TestCase
     #[Test]
     public function a_conflicting_occurrence_rejects_the_whole_recurring_series(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         // Já existe alguém agendado 3 semanas depois, no mesmo horário.

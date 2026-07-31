@@ -34,7 +34,10 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', Service::class);
 
-        $services = Service::query()->latest()->get();
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $services = Service::query()->where('business_id', $user->business_id)->latest()->get();
 
         return ServiceResource::collection($services);
     }
@@ -52,6 +55,7 @@ class ServiceController extends Controller
         $service = Service::create([
             ...$request->validated(),
             'created_by' => $user->id,
+            'business_id' => $user->business_id,
         ])->refresh();
 
         return ServiceResource::make($service)->response()->setStatusCode(201);

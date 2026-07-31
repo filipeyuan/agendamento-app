@@ -7,6 +7,7 @@ namespace Tests\Feature\Notifications;
 use App\Enums\AppointmentStatus;
 use App\Enums\UserRole;
 use App\Models\Appointment;
+use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentCancelledNotification;
 use App\Notifications\AppointmentConfirmedNotification;
@@ -24,10 +25,12 @@ class NotificationTest extends TestCase
     {
         Notification::fake();
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
         $client = User::factory()->create(['role' => UserRole::Client]);
+        $service = Service::factory()->create(['business_id' => $admin->business_id]);
         $appointment = Appointment::factory()->create([
             'user_id' => $client->id,
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Pending,
         ]);
 
@@ -43,10 +46,12 @@ class NotificationTest extends TestCase
     {
         Notification::fake();
 
-        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $admin = User::factory()->admin()->create();
         $client = User::factory()->create(['role' => UserRole::Client]);
+        $service = Service::factory()->create(['business_id' => $admin->business_id]);
         $appointment = Appointment::factory()->create([
             'user_id' => $client->id,
+            'service_id' => $service->id,
             'status' => AppointmentStatus::Pending,
         ]);
 

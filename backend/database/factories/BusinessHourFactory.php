@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Business;
 use App\Models\BusinessHour;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +21,7 @@ class BusinessHourFactory extends Factory
     public function definition(): array
     {
         return [
+            'business_id' => Business::factory(),
             'day_of_week' => fake()->numberBetween(0, 6),
             'is_open' => true,
             'start_time' => '09:00',

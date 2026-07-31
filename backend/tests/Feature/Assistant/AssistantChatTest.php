@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Assistant;
 
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Models\BusinessHour;
 use App\Models\Service;
 use App\Models\User;
@@ -17,14 +18,18 @@ class AssistantChatTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected Business $business;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         config(['services.gemini.api_key' => 'test-key']);
 
+        $this->business = Business::factory()->create();
+
         foreach (range(0, 6) as $dayOfWeek) {
-            BusinessHour::factory()->create(['day_of_week' => $dayOfWeek]);
+            BusinessHour::factory()->create(['business_id' => $this->business->id, 'day_of_week' => $dayOfWeek]);
         }
     }
 
@@ -45,6 +50,7 @@ class AssistantChatTest extends TestCase
     public function guests_cannot_use_the_assistant(): void
     {
         $response = $this->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Oi']],
         ]);
 
@@ -58,6 +64,7 @@ class AssistantChatTest extends TestCase
         $client = User::factory()->create();
 
         $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Oi']],
         ]);
 
@@ -76,6 +83,7 @@ class AssistantChatTest extends TestCase
         $client = User::factory()->create();
 
         $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Oi']],
         ]);
 
@@ -86,7 +94,7 @@ class AssistantChatTest extends TestCase
     #[Test]
     public function assistant_lists_services_using_a_tool_call(): void
     {
-        Service::factory()->create(['name' => 'Corte de cabelo', 'active' => true]);
+        Service::factory()->create(['business_id' => $this->business->id, 'name' => 'Corte de cabelo', 'active' => true]);
 
         Http::fake([
             'generativelanguage.googleapis.com/*' => Http::sequence()
@@ -97,6 +105,7 @@ class AssistantChatTest extends TestCase
         $client = User::factory()->create();
 
         $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Quais serviços vocês têm?']],
         ]);
 
@@ -107,7 +116,7 @@ class AssistantChatTest extends TestCase
     #[Test]
     public function assistant_books_an_appointment_using_a_tool_call(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         Http::fake([
@@ -122,6 +131,7 @@ class AssistantChatTest extends TestCase
         $client = User::factory()->create();
 
         $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Quero agendar amanhã às 10h']],
         ]);
 
@@ -137,7 +147,7 @@ class AssistantChatTest extends TestCase
     #[Test]
     public function assistant_handles_a_booking_conflict_gracefully(): void
     {
-        $service = Service::factory()->create(['duration_minutes' => 30]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
         $startAt = now()->addDay()->setTime(10, 0);
 
         Appointment::factory()->create([
@@ -158,6 +168,7 @@ class AssistantChatTest extends TestCase
         $client = User::factory()->create();
 
         $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
             'messages' => [['role' => 'user', 'content' => 'Quero agendar amanhã às 10h']],
         ]);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Business;
 use App\Models\ScheduleBlock;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +21,7 @@ class ScheduleBlockFactory extends Factory
     public function definition(): array
     {
         return [
+            'business_id' => Business::factory(),
             'date' => now()->addDay()->toDateString(),
             'start_time' => null,
             'end_time' => null,
