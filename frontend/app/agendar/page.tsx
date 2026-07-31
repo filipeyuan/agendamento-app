@@ -1,16 +1,18 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
-import { CalendarX, CreditCard } from "lucide-react";
+import { CalendarX, CreditCard, Store } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,8 +33,11 @@ function formatPrice(price: number) {
 
 function AgendarForm() {
   const searchParams = useSearchParams();
+  const business = searchParams.get("business");
 
-  const { data: services } = useSWR("services", listServices);
+  const { data: services } = useSWR(business ? ["services", business] : null, () =>
+    listServices(business!)
+  );
 
   const [serviceIdOverride, setServiceIdOverride] = useState<string | null>(
     searchParams.get("service")
@@ -80,6 +85,26 @@ function AgendarForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (!business) {
+    return (
+      <Card className="mx-auto w-full max-w-4xl">
+        <CardContent className="py-10">
+          <EmptyState
+            icon={Store}
+            title="Escolha um negócio pra agendar"
+            description="Abra um negócio na lista de serviços e escolha o que quer agendar por lá."
+          />
+          <Link
+            href="/servicos"
+            className={cn(buttonVariants({ className: "mx-auto mt-4 w-fit" }))}
+          >
+            Ver negócios
+          </Link>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

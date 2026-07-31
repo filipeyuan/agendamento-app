@@ -26,6 +26,7 @@ class AppointmentResource extends JsonResource
             'end_at' => $this->end_at,
             'notes' => $this->notes,
             'service' => ServiceResource::make($this->whenLoaded('service')),
+            'business' => BusinessResource::make($this->whenLoaded('business')),
             'client' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

@@ -18,10 +18,45 @@ class DatabaseSeeder extends Seeder
     {
         // Mesmo negócio criado pela migração de backfill em produção (2026_07_30_182301),
         // pra ficar consistente entre um banco novo e um banco já existente.
-        $business = Business::firstOrCreate(
-            ['slug' => 'negocio-padrao'],
-            ['name' => 'Negócio Padrão']
+        $this->seedBusiness(
+            businessName: 'Negócio Padrão',
+            slug: 'negocio-padrao',
+            adminEmail: env('ADMIN_EMAIL', 'admin@agendamento.app'),
+            adminPassword: env('ADMIN_PASSWORD', 'admin12345'),
+            services: [
+                ['name' => 'Corte de cabelo', 'description' => 'Corte tradicional', 'duration_minutes' => 30, 'price' => 40],
+                ['name' => 'Barba', 'description' => 'Aparar e desenhar a barba', 'duration_minutes' => 30, 'price' => 30],
+                ['name' => 'Corte + Barba', 'description' => 'Combo completo', 'duration_minutes' => 60, 'price' => 60],
+                ['name' => 'Coloração', 'description' => 'Coloração completa', 'duration_minutes' => 90, 'price' => 120],
+            ],
         );
+
+        // Segundo negócio, só pra demonstração: prova visualmente que o isolamento entre
+        // negócios funciona de verdade (serviços, horários e agenda completamente separados).
+        $this->seedBusiness(
+            businessName: 'Clínica Bem Estar',
+            slug: 'clinica-bem-estar',
+            adminEmail: 'admin.clinica@zelo.test',
+            adminPassword: 'demo12345',
+            services: [
+                ['name' => 'Consulta inicial', 'description' => 'Avaliação e anamnese', 'duration_minutes' => 45, 'price' => 150],
+                ['name' => 'Retorno', 'description' => 'Consulta de acompanhamento', 'duration_minutes' => 30, 'price' => 90],
+                ['name' => 'Massagem terapêutica', 'description' => null, 'duration_minutes' => 60, 'price' => 120],
+            ],
+        );
+    }
+
+    /**
+     * @param  array<int, array{name: string, description: string|null, duration_minutes: int, price: int}>  $services
+     */
+    private function seedBusiness(
+        string $businessName,
+        string $slug,
+        string $adminEmail,
+        string $adminPassword,
+        array $services,
+    ): void {
+        $business = Business::firstOrCreate(['slug' => $slug], ['name' => $businessName]);
 
         for ($dayOfWeek = 0; $dayOfWeek <= 6; $dayOfWeek++) {
             BusinessHour::firstOrCreate(
@@ -35,21 +70,14 @@ class DatabaseSeeder extends Seeder
         }
 
         $admin = User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@agendamento.app')],
+            ['email' => $adminEmail],
             [
                 'name' => 'Administrador',
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'admin12345')),
+                'password' => Hash::make($adminPassword),
                 'role' => UserRole::Admin,
                 'business_id' => $business->id,
             ]
         );
-
-        $services = [
-            ['name' => 'Corte de cabelo', 'description' => 'Corte tradicional', 'duration_minutes' => 30, 'price' => 40],
-            ['name' => 'Barba', 'description' => 'Aparar e desenhar a barba', 'duration_minutes' => 30, 'price' => 30],
-            ['name' => 'Corte + Barba', 'description' => 'Combo completo', 'duration_minutes' => 60, 'price' => 60],
-            ['name' => 'Coloração', 'description' => 'Coloração completa', 'duration_minutes' => 90, 'price' => 120],
-        ];
 
         foreach ($services as $service) {
             Service::firstOrCreate(
@@ -58,6 +86,6 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $this->call(DemoAppointmentSeeder::class);
+        (new DemoAppointmentSeeder)->runFor($business);
     }
 }

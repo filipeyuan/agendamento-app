@@ -22,20 +22,15 @@ use Illuminate\Support\Facades\Hash;
  */
 class DemoAppointmentSeeder extends Seeder
 {
-    public function run(): void
+    public function runFor(Business $business): void
     {
-        $business = Business::where('slug', 'negocio-padrao')->first();
-        if (! $business) {
-            return;
-        }
-
         $services = Service::where('business_id', $business->id)->get();
         if ($services->isEmpty()) {
             return;
         }
 
         $client = User::firstOrCreate(
-            ['email' => 'cliente.demo@zelo.test'],
+            ['email' => "cliente.demo.{$business->slug}@zelo.test"],
             [
                 'name' => 'Cliente Demo',
                 'password' => Hash::make('demo12345'),

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
-import { CalendarClock, CalendarX2, Repeat, X } from "lucide-react";
+import { CalendarClock, CalendarX2, Repeat, Store, X } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
@@ -259,6 +259,10 @@ function MeusAgendamentosList() {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Store className="h-3.5 w-3.5" />
+                {appointment.business.name}
+              </span>
               <span>{formatDateTime(appointment.start_at)}</span>
               {appointment.notes && <span>Observações: {appointment.notes}</span>}
 
