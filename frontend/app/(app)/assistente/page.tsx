@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { Bot, Send, User as UserIcon } from "lucide-react";
 
-import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,13 +146,11 @@ function AssistantChat() {
 
 export default function AssistentePage() {
   return (
-    <RequireAuth>
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
-        <h1 className="mb-6 text-2xl font-semibold text-foreground">Assistente de agendamento</h1>
-        <Suspense>
-          <AssistantChat />
-        </Suspense>
-      </main>
-    </RequireAuth>
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
+      <h1 className="mb-6 text-2xl font-semibold text-foreground">Assistente de agendamento</h1>
+      <Suspense>
+        <AssistantChat />
+      </Suspense>
+    </main>
   );
 }

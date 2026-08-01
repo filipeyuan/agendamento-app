@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
 
-import AgendarPage from "@/app/agendar/page";
+import AgendarPage from "@/app/(app)/agendar/page";
 import { ApiError } from "@/lib/api/client";
 import { createAppointment } from "@/lib/api/appointments";
 import { availableSlots, listServices } from "@/lib/api/services";

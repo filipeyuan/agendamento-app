@@ -8,7 +8,6 @@ import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
 import { CalendarX, CreditCard, Store } from "lucide-react";
 
-import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -223,12 +222,10 @@ function AgendarForm() {
 
 export default function AgendarPage() {
   return (
-    <RequireAuth>
-      <main className="flex-1 px-4 py-10">
-        <Suspense>
-          <AgendarForm />
-        </Suspense>
-      </main>
-    </RequireAuth>
+    <main className="flex-1 px-4 py-10">
+      <Suspense>
+        <AgendarForm />
+      </Suspense>
+    </main>
   );
 }

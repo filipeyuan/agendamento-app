@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { SWRConfig } from "swr";
 
-import { Footer } from "@/components/layout/footer.component";
-import { Navbar } from "@/components/layout/navbar.component";
 import { AuthProvider } from "@/lib/auth/context";
 import { THEME_INIT_SCRIPT } from "@/lib/utils/theme";
 
@@ -48,11 +46,7 @@ export default function RootLayout({
             errorRetryCount: 8,
           }}
         >
-          <AuthProvider>
-            <Navbar />
-            {children}
-            <Footer />
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </SWRConfig>
       </body>
     </html>

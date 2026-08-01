@@ -7,7 +7,6 @@ import { ptBR } from "@daypicker/react/locale";
 import useSWR from "swr";
 import { CalendarClock, CalendarX2, Repeat, Store, X } from "lucide-react";
 
-import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -304,12 +303,10 @@ function MeusAgendamentosList() {
 
 export default function MeusAgendamentosPage() {
   return (
-    <RequireAuth>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-        <h1 className="mb-6 text-2xl font-semibold text-foreground">Meus agendamentos</h1>
-        <PaymentStatusAlert />
-        <MeusAgendamentosList />
-      </main>
-    </RequireAuth>
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+      <h1 className="mb-6 text-2xl font-semibold text-foreground">Meus agendamentos</h1>
+      <PaymentStatusAlert />
+      <MeusAgendamentosList />
+    </main>
   );
 }
