@@ -27,6 +27,8 @@ interface AuthContextValue {
     password: string;
     password_confirmation: string;
   }) => Promise<void>;
+  deactivateAccount: (password: string) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,9 +94,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authApi.updatePassword(payload);
   }
 
+  async function deactivateAccount(password: string) {
+    await authApi.deactivateAccount({ password });
+    clearToken();
+    await mutate(null, false);
+  }
+
+  async function deleteAccount(password: string) {
+    await authApi.deleteAccount({ password });
+    clearToken();
+    await mutate(null, false);
+  }
+
   return (
     <AuthContext
-      value={{ user: user ?? null, isLoading, login, register, logout, updateProfile, updatePassword }}
+      value={{
+        user: user ?? null,
+        isLoading,
+        login,
+        register,
+        logout,
+        updateProfile,
+        updatePassword,
+        deactivateAccount,
+        deleteAccount,
+      }}
     >
       {children}
     </AuthContext>

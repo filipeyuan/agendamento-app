@@ -41,6 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::put('/me/password', [AuthController::class, 'updatePassword']);
+    Route::patch('/me/deactivate', [AuthController::class, 'deactivate']);
+    Route::delete('/me', [AuthController::class, 'destroy']);
 
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments/mine', [AppointmentController::class, 'mine']);

@@ -59,3 +59,17 @@ export function updatePassword(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+export function deactivateAccount(payload: { password: string }) {
+  return apiRequest<{ message: string }>("/me/deactivate", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteAccount(payload: { password: string }) {
+  return apiRequest<{ message: string }>("/me", {
+    method: "DELETE",
+    body: JSON.stringify(payload),
+  });
+}

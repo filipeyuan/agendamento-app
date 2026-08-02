@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { KeyRound, User as UserIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { KeyRound, PowerOff, Trash2, User as UserIcon } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth/context";
@@ -167,6 +169,188 @@ function PasswordForm() {
   );
 }
 
+function DeactivateAccountSection() {
+  const { deactivateAccount } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function close() {
+    setOpen(false);
+    setPassword("");
+    setError(null);
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await deactivateAccount(password);
+      router.push("/");
+    } catch (err) {
+      setError(formatApiError(err));
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border pb-4 last:border-0 last:pb-0">
+      <div>
+        <p className="font-medium text-foreground">Desativar conta</p>
+        <p className="text-sm text-muted-foreground">
+          Sua conta fica inacessível até você entrar novamente. É possível reativar fazendo login.
+        </p>
+      </div>
+      <Button type="button" variant="outline" className="w-fit shrink-0" onClick={() => setOpen(true)}>
+        <PowerOff className="h-4 w-4" />
+        Desativar
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={close}
+        title="Desativar sua conta?"
+        description="Você será desconectado agora. Pra voltar, basta fazer login de novo com a mesma senha."
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && <Alert variant="destructive">{error}</Alert>}
+
+          <div>
+            <Label htmlFor="deactivate_password">Confirme sua senha</Label>
+            <Input
+              id="deactivate_password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={close}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="destructive" disabled={isSubmitting}>
+              {isSubmitting ? "Desativando..." : "Desativar conta"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </div>
+  );
+}
+
+function DeleteAccountSection() {
+  const { deleteAccount } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmationText, setConfirmationText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function close() {
+    setOpen(false);
+    setPassword("");
+    setConfirmationText("");
+    setError(null);
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await deleteAccount(password);
+      router.push("/");
+    } catch (err) {
+      setError(formatApiError(err));
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="font-medium text-foreground">Excluir conta permanentemente</p>
+        <p className="text-sm text-muted-foreground">
+          Apaga sua conta e seus dados de vez. Essa ação não pode ser desfeita.
+        </p>
+      </div>
+      <Button type="button" variant="destructive" className="w-fit shrink-0" onClick={() => setOpen(true)}>
+        <Trash2 className="h-4 w-4" />
+        Excluir
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={close}
+        title="Excluir sua conta de vez?"
+        description="Todos os seus dados são apagados permanentemente. Não dá pra desfazer essa ação."
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && <Alert variant="destructive">{error}</Alert>}
+
+          <div>
+            <Label htmlFor="delete_password">Confirme sua senha</Label>
+            <Input
+              id="delete_password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="delete_confirmation">
+              Digite <span className="font-semibold text-foreground">EXCLUIR</span> pra confirmar
+            </Label>
+            <Input
+              id="delete_confirmation"
+              required
+              value={confirmationText}
+              onChange={(e) => setConfirmationText(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={close}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="destructive"
+              disabled={isSubmitting || confirmationText !== "EXCLUIR"}
+            >
+              {isSubmitting ? "Excluindo..." : "Excluir conta"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </div>
+  );
+}
+
+function DangerZone() {
+  return (
+    <Card className="border-destructive/30">
+      <CardHeader>
+        <CardTitle className="text-base text-destructive">Zona de risco</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <DeactivateAccountSection />
+        <DeleteAccountSection />
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function PerfilPage() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
@@ -174,6 +358,7 @@ export default function PerfilPage() {
       <div className="flex flex-col gap-6">
         <ProfileForm />
         <PasswordForm />
+        <DangerZone />
       </div>
     </main>
   );
