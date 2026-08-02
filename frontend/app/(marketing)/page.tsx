@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 import {
-  CheckCircle2,
   ChevronDown,
   CreditCard,
   LayoutDashboard,
@@ -15,7 +14,6 @@ import {
 
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Reveal } from "@/components/motion/reveal.component";
-import { SchedulingIllustration } from "@/components/illustrations/scheduling-illustration.component";
 import { cn } from "@/lib/utils/cn";
 
 const steps = [
@@ -115,23 +113,21 @@ function Hero() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="hero-dark relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-        <div className="absolute -left-20 top-[-8rem] h-[26rem] w-[26rem] rounded-full bg-primary/25 blur-[100px]" />
-        <div className="absolute right-[-6rem] top-[6rem] h-[22rem] w-[22rem] rounded-full bg-success/20 blur-[100px]" />
-        <div className="absolute left-1/3 top-[20rem] h-[18rem] w-[18rem] rounded-full bg-warning/15 blur-[100px]" />
+        <div className="absolute right-[-10rem] top-[-4rem] h-[34rem] w-[34rem] rounded-full bg-[var(--hero-primary)]/20 blur-[120px]" />
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-16 px-4 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-28">
+      <div className="mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:py-24 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:py-32">
         <motion.div
-          className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left"
+          className="flex flex-col items-center gap-7 text-center lg:items-start lg:text-left"
           initial={shouldReduceMotion ? undefined : "hidden"}
           animate={shouldReduceMotion ? undefined : "show"}
           variants={heroContainer}
         >
           <motion.span
             variants={heroItem}
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hero-border)] bg-white/5 px-3 py-1 text-xs font-medium text-[var(--hero-primary)]"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Agendamento sem dor de cabeça
@@ -139,19 +135,19 @@ function Hero() {
 
           <motion.h1
             variants={heroItem}
-            className="text-5xl font-semibold tracking-tight text-foreground sm:text-6xl"
+            className="text-6xl font-bold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl"
           >
             Sua agenda,{" "}
-            <span className="relative inline-block whitespace-nowrap">
+            <span className="relative inline-block">
               <span className="relative z-10">com zelo.</span>
               <span
-                className="absolute inset-x-0 bottom-1.5 -z-0 h-3 -rotate-1 bg-primary/25 sm:h-4"
+                className="absolute inset-x-0 bottom-2 -z-0 h-4 -rotate-1 bg-[var(--hero-primary)]/30 sm:h-5 lg:h-6"
                 aria-hidden
               />
             </span>
           </motion.h1>
 
-          <motion.p variants={heroItem} className="max-w-xl text-lg text-muted-foreground">
+          <motion.p variants={heroItem} className="max-w-lg text-lg text-[var(--hero-muted)]">
             Cliente escolhe serviço e horário livre. Admin gerencia tudo em um painel, com
             bloqueio automático de horários conflitantes.
           </motion.p>
@@ -170,7 +166,7 @@ function Hero() {
             {audiences.map((audience) => (
               <span
                 key={audience}
-                className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground"
+                className="rounded-full border border-[var(--hero-border)] px-3 py-1 text-xs text-[var(--hero-muted)]"
               >
                 {audience}
               </span>
@@ -178,30 +174,54 @@ function Hero() {
           </motion.div>
         </motion.div>
 
-        <div className="relative mx-auto flex w-full max-w-md items-center justify-center lg:mx-0">
+        <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
           <motion.div
-            className="w-full"
-            animate={shouldReduceMotion ? undefined : { y: [0, -10, 0] }}
-            transition={
-              shouldReduceMotion ? undefined : { duration: 6, repeat: Infinity, ease: "easeInOut" }
-            }
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, rotate: -3 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, rotate: -2 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="shadow-elevated-lg overflow-hidden rounded-xl border border-white/10 bg-black"
           >
-            <SchedulingIllustration className="w-full" />
+            <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/5 px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+              <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
+              <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+            </div>
+            <Image
+              src="/dashboard-preview-v3.png"
+              alt="Preview do dashboard de analytics do Zelo"
+              width={1280}
+              height={565}
+              className="h-auto w-full"
+              priority
+            />
           </motion.div>
 
           <motion.div
-            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12, rotate: -8 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, rotate: -4 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.9, duration: 0.5 }}
-            className="shadow-elevated-lg absolute -bottom-2 left-2 flex items-center gap-2.5 rounded-2xl border border-border bg-card px-4 py-3 sm:left-4"
+            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, rotate: 6 }}
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : { opacity: 1, y: [0, -8, 0], rotate: 3 }
+            }
+            transition={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: { delay: 0.9, duration: 0.6 },
+                    rotate: { delay: 0.9, duration: 0.6 },
+                    y: { delay: 1.5, duration: 5, repeat: Infinity, ease: "easeInOut" },
+                  }
+            }
+            className="shadow-elevated-lg absolute -bottom-10 -right-6 w-[42%] overflow-hidden rounded-[1.75rem] border-[6px] border-neutral-900 sm:-right-10"
+            style={{ backgroundColor: "var(--hero-card-bg)" }}
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-              <CheckCircle2 className="h-4 w-4" />
-            </span>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">Horário confirmado</p>
-              <p className="text-xs text-muted-foreground">Sem conflito, garantido pelo servidor</p>
-            </div>
+            <Image
+              src="/booking-mobile-preview.png"
+              alt="Preview do fluxo de agendamento do Zelo no celular"
+              width={375}
+              height={620}
+              className="h-auto w-full"
+            />
           </motion.div>
         </div>
       </div>
@@ -238,7 +258,7 @@ function FeaturesSection() {
       <div className="mx-auto max-w-5xl px-4">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-end lg:gap-8">
           <Reveal>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               O que o Zelo resolve
             </h2>
           </Reveal>
@@ -283,7 +303,7 @@ function DashboardPreviewSection() {
     <section className="overflow-hidden py-24">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
         <Reveal>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Veja o painel em ação
           </h2>
           <p className="mt-4 text-muted-foreground">
@@ -318,7 +338,7 @@ function FaqSection() {
     <section className="border-t border-border py-24">
       <div className="mx-auto max-w-2xl px-4">
         <Reveal>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Perguntas frequentes
           </h2>
         </Reveal>

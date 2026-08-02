@@ -52,7 +52,7 @@ function NavLink({
         isActive && "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
       )}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-4 w-4 md:hidden" />
       {children}
     </Link>
   );
