@@ -52,30 +52,29 @@ export default async function NegocioServicosPage({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, index) => (
           <Reveal key={service.id} delay={Math.min(index * 0.05, 0.3)}>
-            <Card className="shadow-[var(--elevation-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--elevation-md)]">
-              <CardHeader>
-                <CardTitle>{service.name}</CardTitle>
-                {service.description && (
-                  <p className="text-sm text-muted-foreground">{service.description}</p>
-                )}
-              </CardHeader>
-              <CardContent className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {service.duration_minutes} min
-                </span>
-                <span className="font-medium text-foreground">{formatPrice(service.price)}</span>
-              </CardContent>
-              <CardFooter>
-                <Link
-                  href={`/agendar?service=${service.id}&business=${slug}`}
-                  className={cn(buttonVariants({ className: "w-full rounded-full" }))}
-                >
-                  <CalendarPlus className="h-4 w-4" />
-                  Agendar
-                </Link>
-              </CardFooter>
-            </Card>
+            <Link href={`/agendar?service=${service.id}&business=${slug}`} className="group block">
+              <Card className="shadow-[var(--elevation-sm)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[var(--elevation-md)]">
+                <CardHeader>
+                  <CardTitle>{service.name}</CardTitle>
+                  {service.description && (
+                    <p className="text-sm text-muted-foreground">{service.description}</p>
+                  )}
+                </CardHeader>
+                <CardContent className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    {service.duration_minutes} min
+                  </span>
+                  <span className="font-medium text-foreground">{formatPrice(service.price)}</span>
+                </CardContent>
+                <CardFooter>
+                  <span className={cn(buttonVariants({ className: "w-full rounded-full" }))}>
+                    <CalendarPlus className="h-4 w-4" />
+                    Agendar
+                  </span>
+                </CardFooter>
+              </Card>
+            </Link>
           </Reveal>
         ))}
       </div>

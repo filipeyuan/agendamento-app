@@ -105,12 +105,27 @@ export function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [isScrolled, setIsScrolled] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const hasDarkHero = pathname === "/";
+  const isTransparent = hasDarkHero && !isScrolled;
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
     setIsMenuOpen(false);
   }
+
+  useEffect(() => {
+    if (!hasDarkHero) return;
+
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 240);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasDarkHero]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -198,7 +213,14 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
+      <header
+        className={cn(
+          "sticky top-0 z-10 transition-colors duration-300",
+          isTransparent
+            ? "nav-on-dark border-b border-transparent bg-transparent"
+            : "border-b border-border bg-background/80 backdrop-blur"
+        )}
+      >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
           <Logo />

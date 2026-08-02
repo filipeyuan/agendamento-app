@@ -6,7 +6,6 @@ import {
   ChevronDown,
   CreditCard,
   LayoutDashboard,
-  ShieldCheck,
   Smartphone,
   Sparkles,
   Users,
@@ -32,7 +31,6 @@ const steps = [
 ];
 
 const flagshipFeature = {
-  icon: ShieldCheck,
   title: "Sem horário duplicado",
   description:
     "A confirmação é validada no servidor, não só na tela. Mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
@@ -113,7 +111,7 @@ function Hero() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="hero-dark relative overflow-hidden">
+    <section className="hero-dark relative -mt-16 overflow-hidden pt-16">
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
         <div className="absolute right-[-10rem] top-[-4rem] h-[34rem] w-[34rem] rounded-full bg-[var(--hero-primary)]/20 blur-[120px]" />
       </div>
@@ -254,41 +252,30 @@ function StepsSection() {
 
 function FeaturesSection() {
   return (
-    <section className="border-t border-border bg-muted/40 py-24">
-      <div className="mx-auto max-w-5xl px-4">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-end lg:gap-8">
-          <Reveal>
-            <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-              O que o Zelo resolve
-            </h2>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <p className="text-muted-foreground lg:text-right">
-              Cada detalhe do fluxo de agendamento pensado pra não dar dor de cabeça, nem pro
-              cliente nem pra quem administra.
-            </p>
-          </Reveal>
-        </div>
-
-        <Reveal delay={0.1} className="mt-10">
-          <div className="flex flex-col gap-4 rounded-2xl border border-primary/15 bg-primary/5 px-6 py-7 sm:flex-row sm:items-center sm:gap-8">
-            <flagshipFeature.icon className="h-9 w-9 shrink-0 text-primary" />
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">{flagshipFeature.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{flagshipFeature.description}</p>
-            </div>
-          </div>
+    <section className="py-24 sm:py-32">
+      <div className="mx-auto max-w-3xl px-4">
+        <Reveal>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+            O que o Zelo resolve
+          </p>
         </Reveal>
 
-        <div className="mt-4 columns-1 gap-4 sm:columns-2">
+        <Reveal delay={0.05} className="mt-5">
+          <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl">
+            {flagshipFeature.title}.{" "}
+            <span className="text-muted-foreground">{flagshipFeature.description}</span>
+          </h2>
+        </Reveal>
+
+        <div className="mt-16 border-t border-border">
           {features.map((feature, index) => (
-            <Reveal key={feature.title} delay={0.05 * index} className="mb-4 break-inside-avoid">
-              <div className="shadow-[var(--elevation-sm)] hover:shadow-[var(--elevation-md)] rounded-2xl border border-border bg-card px-5 py-5 transition-all duration-200 hover:-translate-y-0.5">
+            <Reveal key={feature.title} delay={0.05 * index}>
+              <div className="grid gap-2 border-b border-border py-7 sm:grid-cols-[13rem_1fr] sm:gap-8">
                 <div className="flex items-center gap-2.5">
                   <feature.icon className="h-5 w-5 shrink-0 text-primary" />
-                  <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                  <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{feature.description}</p>
+                <p className="text-muted-foreground">{feature.description}</p>
               </div>
             </Reveal>
           ))}
@@ -300,25 +287,22 @@ function FeaturesSection() {
 
 function DashboardPreviewSection() {
   return (
-    <section className="overflow-hidden py-24">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-        <Reveal>
-          <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Veja o painel em ação
-          </h2>
-          <p className="mt-4 text-muted-foreground">
+    <section className="hero-dark relative overflow-hidden py-24 sm:py-32">
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute left-1/2 top-0 h-[28rem] w-[36rem] -translate-x-1/2 rounded-full bg-[var(--hero-primary)]/12 blur-[130px]" />
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4">
+        <Reveal className="mx-auto max-w-xl text-center">
+          <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Veja o painel em ação</h2>
+          <p className="mt-4 text-[var(--hero-muted)]">
             Dashboard com agendamentos por dia, distribuição por status, receita e os serviços
             mais procurados, tudo em tempo real.
           </p>
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <div className="shadow-elevated-lg -rotate-1 overflow-hidden rounded-xl border border-border bg-card lg:mr-[-4rem]">
-            <div className="flex items-center gap-1.5 border-b border-border bg-muted/50 px-4 py-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
-              <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
-              <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-            </div>
+        <Reveal delay={0.1} className="mt-14">
+          <div className="shadow-elevated-lg mx-auto max-w-4xl overflow-hidden rounded-xl border border-white/10">
             <Image
               src="/dashboard-preview-v3.png"
               alt="Preview do dashboard de analytics do Zelo, com agendamentos por dia e por status"
@@ -335,7 +319,7 @@ function DashboardPreviewSection() {
 
 function FaqSection() {
   return (
-    <section className="border-t border-border py-24">
+    <section className="py-24 sm:py-32">
       <div className="mx-auto max-w-2xl px-4">
         <Reveal>
           <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
@@ -343,15 +327,15 @@ function FaqSection() {
           </h2>
         </Reveal>
 
-        <div className="mt-10 flex flex-col gap-3">
+        <div className="mt-12 border-t border-border">
           {faq.map((item, index) => (
             <Reveal key={item.question} delay={Math.min(index * 0.05, 0.3)}>
-              <details className="group rounded-lg border border-border bg-card px-4 py-3 open:pb-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-foreground">
+              <details className="group border-b border-border py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-foreground">
                   {item.question}
                   <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
                 </summary>
-                <p className="mt-2 text-sm text-muted-foreground">{item.answer}</p>
+                <p className="mt-3 text-muted-foreground">{item.answer}</p>
               </details>
             </Reveal>
           ))}
@@ -363,7 +347,7 @@ function FaqSection() {
 
 export default function Home() {
   return (
-    <main className="flex-1 overflow-x-hidden">
+    <main className="flex-1">
       <Hero />
       <StepsSection />
       <FeaturesSection />

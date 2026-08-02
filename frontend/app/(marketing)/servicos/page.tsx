@@ -26,25 +26,24 @@ export default async function ServicosPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {businesses.map((business, index) => (
           <Reveal key={business.id} delay={Math.min(index * 0.05, 0.3)}>
-            <Card className="shadow-[var(--elevation-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--elevation-md)]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <StoreIcon className="h-4 w-4" />
+            <Link href={`/negocios/${business.slug}`} className="group block">
+              <Card className="shadow-[var(--elevation-sm)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[var(--elevation-md)]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <StoreIcon className="h-4 w-4" />
+                    </span>
+                    {business.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardFooter>
+                  <span className={cn(buttonVariants({ className: "w-full rounded-full" }))}>
+                    Ver serviços
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </span>
-                  {business.name}
-                </CardTitle>
-              </CardHeader>
-              <CardFooter>
-                <Link
-                  href={`/negocios/${business.slug}`}
-                  className={cn(buttonVariants({ className: "w-full rounded-full" }))}
-                >
-                  Ver serviços
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </CardFooter>
-            </Card>
+                </CardFooter>
+              </Card>
+            </Link>
           </Reveal>
         ))}
       </div>
