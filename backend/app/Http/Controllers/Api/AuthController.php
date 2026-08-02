@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DeactivateAccountRequest;
+use App\Http\Requests\DeleteAccountRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdatePasswordRequest;
@@ -15,6 +17,7 @@ use App\Models\Business;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -65,6 +68,10 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['As credenciais informadas estão incorretas.'],
             ]);
+        }
+
+        if ($user->isDeactivated()) {
+            $user->forceFill(['deactivated_at' => null])->save();
         }
 
         $user->loadMissing('business');
@@ -123,6 +130,35 @@ class AuthController extends Controller
         $user->update(['password' => $request->validated('password')]);
 
         return response()->json(['message' => 'Senha atualizada com sucesso.']);
+    }
+
+    public function deactivate(DeactivateAccountRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $user->tokens()->delete();
+        $user->forceFill(['deactivated_at' => now()])->save();
+
+        return response()->json(['message' => 'Conta desativada com sucesso.']);
+    }
+
+    public function destroy(DeleteAccountRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        DB::transaction(function () use ($user) {
+            $user->tokens()->delete();
+
+            if ($user->isAdmin() && $user->business_id) {
+                Business::whereKey($user->business_id)->delete();
+            }
+
+            $user->delete();
+        });
+
+        return response()->json(['message' => 'Conta excluída com sucesso.']);
     }
 
     private function uniqueSlug(string $name): string
