@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import useSWR from "swr";
 import { Bell, Calendar, CalendarClock, CalendarX2, CheckCheck, CreditCard, type LucideIcon } from "lucide-react";
 
 import { listNotifications, markAllNotificationsRead, markNotificationRead } from "@/lib/api/notifications";
 import { useAuth } from "@/lib/auth/context";
+import { useClickOutside } from "@/lib/hooks/use-click-outside";
 import type { AppNotification, NotificationType } from "@/lib/types/notifications";
 import { cn } from "@/lib/utils/cn";
 import { formatApiError } from "@/lib/utils/format-error";
@@ -42,16 +43,7 @@ export function NotificationBell() {
     { refreshInterval: 20000 }
   );
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useClickOutside(containerRef, useCallback(() => setIsOpen(false), []));
 
   if (!user) return null;
 
@@ -93,7 +85,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-11 z-20 w-80 rounded-lg border border-border bg-card shadow-lg">
+        <div className="shadow-elevated-lg absolute right-0 top-11 z-20 w-80 rounded-xl border border-border bg-card">
           {error && (
             <p className="border-b border-border px-4 py-2 text-xs text-destructive">{error}</p>
           )}

@@ -8,6 +8,8 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Business;
 use App\Models\User;
@@ -97,6 +99,30 @@ class AuthController extends Controller
         abort_if(! $user instanceof User, 401);
 
         return UserResource::make($user->loadMissing('business'));
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): UserResource
+    {
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $user->update([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'phone' => $request->validated('phone'),
+        ]);
+
+        return UserResource::make($user->loadMissing('business'));
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(! $user instanceof User, 401);
+
+        $user->update(['password' => $request->validated('password')]);
+
+        return response()->json(['message' => 'Senha atualizada com sucesso.']);
     }
 
     private function uniqueSlug(string $name): string

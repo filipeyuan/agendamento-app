@@ -3,6 +3,7 @@ import { Code2 } from "lucide-react";
 
 import { ApiStatus } from "@/components/layout/api-status.component";
 import { Logo } from "@/components/layout/logo.component";
+import { Wordmark } from "@/components/layout/wordmark.component";
 import { API_URL } from "@/lib/api/client";
 
 const apiDocsUrl = `${API_URL.replace(/\/api\/?$/, "")}/docs/api`;
@@ -20,7 +21,7 @@ export function Footer() {
         <div className="flex max-w-56 flex-col gap-2">
           <div className="flex items-center gap-2 font-heading font-medium text-foreground">
             <Logo className="h-6 w-6" iconClassName="h-3.5 w-3.5" />
-            Zelo
+            <Wordmark />
           </div>
           <p className="text-sm text-muted-foreground">
             Agendamento online pra negócios de serviço, sem conflito de horário.

@@ -33,6 +33,10 @@
   --border: oklch(0.89 0.01 260);
   --input: oklch(0.89 0.01 260);
   --ring: oklch(0.5 0.21 260);
+
+  --elevation-sm: 0 1px 2px 0 rgb(23 23 35 / 0.06), 0 1px 1px -1px rgb(23 23 35 / 0.04);
+  --elevation-md: 0 6px 16px -4px rgb(23 23 35 / 0.12), 0 2px 6px -2px rgb(23 23 35 / 0.06);
+  --elevation-lg: 0 16px 40px -12px rgb(23 23 35 / 0.22), 0 6px 16px -6px rgb(23 23 35 / 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -67,6 +71,10 @@
     --border: oklch(0.3 0.015 260);
     --input: oklch(0.3 0.015 260);
     --ring: oklch(0.7 0.18 260);
+
+    --elevation-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 1px -1px rgb(0 0 0 / 0.2);
+    --elevation-md: 0 6px 16px -4px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+    --elevation-lg: 0 16px 40px -12px rgb(0 0 0 / 0.55), 0 6px 16px -6px rgb(0 0 0 / 0.4);
   }
 }
 
@@ -101,6 +109,10 @@
   --border: oklch(0.3 0.015 260);
   --input: oklch(0.3 0.015 260);
   --ring: oklch(0.7 0.18 260);
+
+  --elevation-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 1px -1px rgb(0 0 0 / 0.2);
+  --elevation-md: 0 6px 16px -4px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --elevation-lg: 0 16px 40px -12px rgb(0 0 0 / 0.55), 0 6px 16px -6px rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
@@ -157,18 +169,59 @@ h3 {
   letter-spacing: -0.02em;
 }
 
+.hero-dark {
+  --hero-bg-start: oklch(0.15 0.03 264);
+  --hero-bg-end: oklch(0.22 0.06 254);
+  --hero-fg: oklch(0.97 0.006 260);
+  --hero-muted: oklch(0.72 0.02 260);
+  --hero-primary: oklch(0.72 0.19 260);
+  --hero-primary-foreground: oklch(0.16 0 0);
+  --hero-border: oklch(0.4 0.03 260 / 0.4);
+  --hero-card-bg: oklch(0.99 0.002 260);
+  --hero-card-fg: oklch(0.18 0.02 265);
+  background-image: linear-gradient(160deg, var(--hero-bg-start), var(--hero-bg-end));
+  color: var(--hero-fg);
+}
+
+.nav-on-dark {
+  --foreground: oklch(0.97 0.006 260);
+  --muted-foreground: oklch(0.75 0.02 260);
+  --accent: oklch(1 0 0 / 0.1);
+  --accent-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 0.18);
+  --card: oklch(0.22 0.02 260);
+  --card-foreground: oklch(0.97 0.006 260);
+  --primary: oklch(0.72 0.19 260);
+  --primary-foreground: oklch(0.16 0 0);
+  --destructive: oklch(0.65 0.22 27);
+  --destructive-foreground: oklch(0.16 0 0);
+  --ring: oklch(0.72 0.19 260);
+}
+
+.shadow-elevated-sm {
+  box-shadow: var(--elevation-sm);
+}
+
+.shadow-elevated-md {
+  box-shadow: var(--elevation-md);
+}
+
+.shadow-elevated-lg {
+  box-shadow: var(--elevation-lg);
+}
+
 .fc {
   --fc-border-color: var(--border);
   --fc-page-bg-color: var(--card);
   --fc-neutral-bg-color: var(--muted);
   --fc-neutral-text-color: var(--muted-foreground);
-  --fc-today-bg-color: color-mix(in oklch, var(--primary) 12%, transparent);
+  --fc-today-bg-color: color-mix(in oklch, var(--primary) 10%, transparent);
   --fc-highlight-color: color-mix(in oklch, var(--primary) 16%, transparent);
   --fc-now-indicator-color: var(--destructive);
   --fc-event-text-color: var(--primary-foreground);
-  --fc-button-bg-color: var(--secondary);
+  --fc-button-bg-color: transparent;
   --fc-button-border-color: var(--border);
-  --fc-button-text-color: var(--secondary-foreground);
+  --fc-button-text-color: var(--foreground);
   --fc-button-hover-bg-color: var(--accent);
   --fc-button-hover-border-color: var(--border);
   --fc-button-active-bg-color: var(--primary);
@@ -176,40 +229,68 @@ h3 {
   color: var(--foreground);
 }
 
+.fc .fc-toolbar {
+  gap: 1rem 1.5rem;
+}
+
 .fc .fc-button {
   text-transform: capitalize;
   box-shadow: none !important;
-  border-radius: 0.5rem !important;
+  border-radius: 9999px !important;
+  padding: 0.5rem 1rem !important;
   font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.fc .fc-button-group {
+  gap: 0.375rem;
+}
+
+.fc .fc-button-group .fc-button {
+  border-radius: 9999px !important;
+}
+
+.fc .fc-today-button {
+  text-transform: none;
 }
 
 .fc .fc-toolbar-title {
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
 }
 
 .fc .fc-col-header-cell {
-  background: var(--muted);
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
+  border: none;
 }
 
 .fc .fc-col-header-cell-cushion {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--muted-foreground);
+}
+
+.fc .fc-daygrid-day-frame {
+  padding: 0.25rem;
 }
 
 .fc .fc-daygrid-day:hover .fc-daygrid-day-frame {
   background: color-mix(in oklch, var(--accent) 60%, transparent);
+  border-radius: 0.75rem;
+}
+
+.fc .fc-daygrid-day-top {
+  padding: 0.25rem;
 }
 
 .fc .fc-day-today .fc-daygrid-day-number {
   display: inline-flex;
-  height: 1.75rem;
-  width: 1.75rem;
+  height: 1.875rem;
+  width: 1.875rem;
   align-items: center;
   justify-content: center;
   background: var(--primary);
@@ -219,9 +300,9 @@ h3 {
 }
 
 .fc .fc-daygrid-event {
-  border-radius: 0.375rem;
-  padding: 1px 6px;
-  font-weight: 500;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   transition: opacity 0.15s ease;
@@ -257,9 +338,9 @@ h3 {
 }
 
 .fc .fc-timegrid-event {
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: none;
-  padding: 2px 4px;
+  padding: 2px 6px;
   cursor: pointer;
 }
 
@@ -268,7 +349,7 @@ h3 {
 }
 
 .fc .fc-scrollgrid {
-  border-radius: 0.5rem;
+  border-radius: 0.875rem;
   overflow: hidden;
 }
 

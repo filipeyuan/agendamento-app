@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
 
-import AgendamentosAdminPage from "@/app/admin/agendamentos/page";
+import AgendamentosAdminPage from "@/app/(app)/admin/agendamentos/page";
 import { adminAppointments, updateAppointmentStatus } from "@/lib/api/appointments";
 import type { Appointment } from "@/lib/types/appointments";
 

@@ -40,3 +40,22 @@ export async function me() {
   const { data } = await apiRequest<ApiResource<User>>("/me");
   return data;
 }
+
+export async function updateProfile(payload: { name: string; email: string; phone?: string }) {
+  const { data } = await apiRequest<ApiResource<User>>("/me", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return data;
+}
+
+export function updatePassword(payload: {
+  current_password: string;
+  password: string;
+  password_confirmation: string;
+}) {
+  return apiRequest<{ message: string }>("/me/password", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
