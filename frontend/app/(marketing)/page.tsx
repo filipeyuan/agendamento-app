@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "motion/react";
-import { ChevronDown, CreditCard, LayoutDashboard, Smartphone, Users } from "lucide-react";
+import { ChevronDown, CreditCard, LayoutDashboard, ShieldCheck, Smartphone, Users } from "lucide-react";
 
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Reveal } from "@/components/motion/reveal.component";
-import { cn } from "@/lib/utils/cn";
 
 const steps = [
   {
@@ -23,13 +22,13 @@ const steps = [
   },
 ];
 
-const flagshipFeature = {
-  title: "Sem horário duplicado",
-  description:
-    "A confirmação é validada no servidor, não só na tela. Mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
-};
-
 const features = [
+  {
+    icon: ShieldCheck,
+    title: "Sem horário duplicado",
+    description:
+      "A confirmação é validada no servidor, não só na tela. Mesmo com duas pessoas agendando ao mesmo tempo, só uma fica com o horário.",
+  },
   {
     icon: LayoutDashboard,
     title: "Painel completo pro seu negócio",
@@ -95,15 +94,15 @@ function Hero() {
 
   const heroContainer: Variants = {
     hidden: {},
-    show: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.12 } },
+    show: { transition: { staggerChildren: shouldReduceMotion ? 0.06 : 0.12 } },
   };
 
   const heroItem: Variants = {
-    hidden: { opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 16 },
+    hidden: { opacity: 0, y: shouldReduceMotion ? 8 : 16 },
     show: {
       opacity: 1,
       y: 0,
-      transition: { duration: shouldReduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] },
+      transition: { duration: shouldReduceMotion ? 0.35 : 0.5, ease: [0.16, 1, 0.3, 1] },
     },
   };
 
@@ -153,8 +152,9 @@ function Hero() {
             {audiences.map((audience) => (
               <span
                 key={audience}
-                className="rounded-full border border-[var(--hero-border)] px-3 py-1 text-xs text-[var(--hero-muted)]"
+                className="flex items-center gap-1.5 rounded-full border border-[var(--hero-border)] bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-[var(--hero-muted)]"
               >
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--hero-primary)]" />
                 {audience}
               </span>
             ))}
@@ -163,11 +163,11 @@ function Hero() {
 
         <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
           <motion.div
-            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 24, rotate: -2 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 10 : 24, rotate: -2 }}
             animate={{ opacity: 1, y: 0, rotate: -2 }}
             transition={{
-              delay: shouldReduceMotion ? 0 : 0.5,
-              duration: shouldReduceMotion ? 0 : 0.7,
+              delay: shouldReduceMotion ? 0.1 : 0.5,
+              duration: shouldReduceMotion ? 0.4 : 0.7,
               ease: [0.16, 1, 0.3, 1],
             }}
             className="shadow-elevated-lg overflow-hidden rounded-xl border border-white/10"
@@ -189,12 +189,12 @@ function Hero() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 24, rotate: 3 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 10 : 24, rotate: 3 }}
             animate={{ opacity: 1, y: shouldReduceMotion ? 0 : [0, -8, 0], rotate: 3 }}
             transition={{
-              opacity: { delay: shouldReduceMotion ? 0 : 0.9, duration: shouldReduceMotion ? 0 : 0.6 },
+              opacity: { delay: shouldReduceMotion ? 0.3 : 0.9, duration: shouldReduceMotion ? 0.4 : 0.6 },
               y: shouldReduceMotion
-                ? { duration: 0 }
+                ? { duration: 0.4 }
                 : { delay: 1.5, duration: 5, repeat: Infinity, ease: "easeInOut" },
             }}
             className="shadow-elevated-lg absolute -bottom-10 -right-6 w-[42%] overflow-hidden rounded-[1.75rem] border-[6px] border-neutral-900 sm:-right-10"
@@ -216,19 +216,24 @@ function Hero() {
 
 function StepsSection() {
   return (
-    <section className="mx-auto max-w-5xl px-4 pb-24 pt-6">
-      <div className="grid gap-10 sm:grid-cols-3">
+    <section className="mx-auto max-w-5xl px-4 py-24 sm:py-28">
+      <Reveal>
+        <p className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-primary sm:text-left">
+          Como funciona
+        </p>
+      </Reveal>
+
+      <div className="relative mt-10 grid gap-10 sm:grid-cols-3">
+        <div className="absolute left-0 right-0 top-5 hidden h-px bg-border sm:block" aria-hidden />
+
         {steps.map((step, index) => (
           <Reveal key={step.title} delay={index * 0.1}>
-            <div className={cn("relative", index === 1 && "sm:mt-8", index === 2 && "sm:mt-16")}>
-              <span
-                className="pointer-events-none absolute -left-1 -top-8 select-none font-heading text-7xl font-bold text-foreground/5"
-                aria-hidden
-              >
-                {String(index + 1).padStart(2, "0")}
+            <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:text-left">
+              <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground ring-4 ring-background">
+                {index + 1}
               </span>
-              <h3 className="relative text-lg font-semibold text-foreground">{step.title}</h3>
-              <p className="relative mt-1.5 text-sm text-muted-foreground">{step.description}</p>
+              <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
           </Reveal>
         ))}
@@ -239,7 +244,7 @@ function StepsSection() {
 
 function FeaturesSection() {
   return (
-    <section className="py-24 sm:py-32">
+    <section className="border-t border-border py-24 sm:py-28">
       <div className="mx-auto max-w-3xl px-4">
         <Reveal>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
@@ -247,22 +252,23 @@ function FeaturesSection() {
           </p>
         </Reveal>
 
-        <Reveal delay={0.05} className="mt-5">
-          <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl">
-            {flagshipFeature.title}.{" "}
-            <span className="text-muted-foreground">{flagshipFeature.description}</span>
+        <Reveal delay={0.05} className="mt-4">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Cada detalhe do fluxo pensado pra não dar dor de cabeça.
           </h2>
         </Reveal>
 
-        <div className="mt-16 border-t border-border">
+        <div className="mt-12 border-t border-border">
           {features.map((feature, index) => (
             <Reveal key={feature.title} delay={0.05 * index}>
-              <div className="grid gap-2 border-b border-border py-7 sm:grid-cols-[13rem_1fr] sm:gap-8">
-                <div className="flex items-center gap-2.5">
-                  <feature.icon className="h-5 w-5 shrink-0 text-primary" />
-                  <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+              <div className="flex items-start gap-4 border-b border-border py-6">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <feature.icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">{feature.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{feature.description}</p>
                 </div>
-                <p className="text-muted-foreground">{feature.description}</p>
               </div>
             </Reveal>
           ))}

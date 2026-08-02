@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils/cn";
 
 const primaryClass = cn(
   buttonVariants({ size: "lg" }),
-  "bg-[var(--hero-primary)] text-[var(--hero-primary-foreground)] shadow-none hover:opacity-90"
+  "rounded-full bg-[var(--hero-primary)] font-semibold text-[var(--hero-primary-foreground)] shadow-[0_8px_24px_-8px_var(--hero-primary)] transition-transform hover:-translate-y-0.5 hover:opacity-90"
 );
 const outlineClass = cn(
   buttonVariants({ variant: "outline", size: "lg" }),
-  "border-[var(--hero-border)] bg-transparent text-[var(--hero-fg)] hover:bg-white/10"
+  "rounded-full border-[var(--hero-border)] bg-white/[0.04] font-semibold text-[var(--hero-fg)] transition-transform hover:-translate-y-0.5 hover:bg-white/10"
 );
 
 export function HeroActions() {

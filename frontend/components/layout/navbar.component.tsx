@@ -143,6 +143,8 @@ export function Navbar() {
   // (app)/layout.tsx. Este navbar público, quando logado, só precisa
   // devolver a pessoa pro painel dela — repetir a lista inteira aqui
   // duplicava links (ex: "Serviços" aparecia 2x pro admin) e lotava a barra.
+  // O CTA de "voltar pro app" (painel/meus agendamentos) fica com peso de
+  // botão, não de link discreto, pra não deixar a barra parecendo vazia.
   function navLinks(onNavigate?: () => void) {
     if (isLoading) {
       return (
@@ -152,36 +154,47 @@ export function Navbar() {
       );
     }
 
-    if (user?.role === "admin") {
+    if (user?.role === "client") {
       return (
-        <NavLink href="/admin/dashboard" icon={LayoutDashboard} onNavigate={onNavigate}>
-          Ir para o painel
+        <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
+          Serviços
         </NavLink>
       );
     }
 
-    if (user?.role === "client") {
+    if (!user) {
       return (
         <>
           <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
             Serviços
           </NavLink>
-          <NavLink href="/meus-agendamentos" icon={CalendarCheck2} onNavigate={onNavigate}>
-            Meus agendamentos
+          <NavLink href="/login" icon={LogIn} onNavigate={onNavigate}>
+            Entrar
           </NavLink>
         </>
       );
     }
 
+    return null;
+  }
+
+  function appCta(onNavigate?: () => void) {
+    if (isLoading || !user) return null;
+
+    const { href, label } =
+      user.role === "admin"
+        ? { href: "/admin/dashboard", label: "Ir para o painel" }
+        : { href: "/meus-agendamentos", label: "Meus agendamentos" };
+
     return (
-      <>
-        <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
-          Serviços
-        </NavLink>
-        <NavLink href="/login" icon={LogIn} onNavigate={onNavigate}>
-          Entrar
-        </NavLink>
-      </>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        className={cn(buttonVariants({ size: "sm" }), "rounded-full")}
+      >
+        {user.role === "admin" ? <LayoutDashboard className="h-4 w-4" /> : <CalendarCheck2 className="h-4 w-4" />}
+        {label}
+      </Link>
     );
   }
 
@@ -204,16 +217,18 @@ export function Navbar() {
         <nav className="hidden items-center gap-1.5 md:flex">
           {navLinks()}
 
-          <div className="ml-3 flex items-center gap-1.5 border-l border-border pl-4">
+          <div className="ml-3 flex items-center gap-2 border-l border-border pl-4">
             <NotificationBell />
             <ThemeToggle />
 
             {isLoading && <Spinner className="ml-1 h-4 w-4 text-muted-foreground" />}
 
+            {appCta()}
+
             {!isLoading && user && <AccountMenu />}
 
             {!isLoading && !user && (
-              <Link href="/cadastro" className={cn(buttonVariants({ size: "sm" }), "ml-1 rounded-full")}>
+              <Link href="/cadastro" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
                 Cadastrar
               </Link>
             )}
@@ -266,6 +281,9 @@ export function Navbar() {
 
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
               {navLinks(() => setIsMenuOpen(false))}
+              {user && (
+                <div className="mt-1">{appCta(() => setIsMenuOpen(false))}</div>
+              )}
             </nav>
 
             <div className="border-t border-border p-3">
