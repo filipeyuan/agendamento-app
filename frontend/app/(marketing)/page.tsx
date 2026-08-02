@@ -2,14 +2,7 @@
 
 import Image from "next/image";
 import { motion, useReducedMotion, type Variants } from "motion/react";
-import {
-  ChevronDown,
-  CreditCard,
-  LayoutDashboard,
-  Smartphone,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { ChevronDown, CreditCard, LayoutDashboard, Smartphone, Users } from "lucide-react";
 
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Reveal } from "@/components/motion/reveal.component";
@@ -127,14 +120,6 @@ function Hero() {
           animate="show"
           variants={heroContainer}
         >
-          <motion.span
-            variants={heroItem}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hero-border)] bg-white/5 px-3 py-1 text-xs font-medium text-[var(--hero-primary)]"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Agendamento sem dor de cabeça
-          </motion.span>
-
           <motion.h1
             variants={heroItem}
             className="text-6xl font-bold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl"
@@ -185,18 +170,19 @@ function Hero() {
               duration: shouldReduceMotion ? 0 : 0.7,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="shadow-elevated-lg overflow-hidden rounded-xl border border-white/10 bg-black"
+            className="shadow-elevated-lg overflow-hidden rounded-xl border border-white/10"
+            style={{ backgroundColor: "var(--hero-card-bg)" }}
           >
-            <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/5 px-4 py-2.5">
+            <div className="flex items-center gap-1.5 border-b border-black/10 bg-black/5 px-4 py-2.5">
               <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
               <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
               <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
             </div>
             <Image
-              src="/dashboard-preview-v3.png"
-              alt="Preview do dashboard de analytics do Zelo"
+              src="/agenda-preview.png"
+              alt="Preview da agenda de agendamentos do Zelo"
               width={1280}
-              height={565}
+              height={620}
               className="h-auto w-full"
               priority
             />
@@ -303,12 +289,15 @@ function DashboardPreviewSection() {
         </Reveal>
 
         <Reveal delay={0.1} className="mt-14">
-          <div className="shadow-elevated-lg mx-auto max-w-4xl overflow-hidden rounded-xl border border-white/10">
+          <div
+            className="shadow-elevated-lg mx-auto max-w-4xl overflow-hidden rounded-xl border border-white/10"
+            style={{ backgroundColor: "var(--hero-card-bg)" }}
+          >
             <Image
-              src="/dashboard-preview-v3.png"
+              src="/dashboard-preview-v4.png"
               alt="Preview do dashboard de analytics do Zelo, com agendamentos por dia e por status"
               width={1280}
-              height={565}
+              height={620}
               className="h-auto w-full"
             />
           </div>

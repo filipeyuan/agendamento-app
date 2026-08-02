@@ -3,12 +3,9 @@
 import { Suspense, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { Bot, Send, User as UserIcon } from "lucide-react";
+import { Send, Sparkles, User as UserIcon } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { sendChatMessage } from "@/lib/api/assistant";
@@ -26,18 +23,18 @@ function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
   return (
-    <div className={cn("flex items-start gap-2", isUser && "flex-row-reverse")}>
+    <div className={cn("flex items-start gap-3", isUser && "flex-row-reverse")}>
       <div
         className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+          isUser ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
         )}
       >
-        {isUser ? <UserIcon className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+        {isUser ? <UserIcon className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
       </div>
       <div
         className={cn(
-          "max-w-[75%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm",
+          "max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           isUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
         )}
       >
@@ -84,46 +81,63 @@ function AssistantChat() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Assistente de agendamento</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {businesses && businesses.length > 1 && (
-          <div>
-            <Label htmlFor="business">Negócio</Label>
-            <Select
-              id="business"
-              value={businessSlug ?? ""}
-              onChange={(e) => setBusinessOverride(e.target.value)}
-            >
-              {businesses.map((business) => (
-                <option key={business.id} value={business.slug}>
-                  {business.name}
-                </option>
-              ))}
-            </Select>
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
+      <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Sparkles className="h-4.5 w-4.5" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold text-foreground">Assistente de agendamento</h1>
+            <p className="truncate text-xs text-muted-foreground">
+              Pergunte sobre serviços e horários, e agende direto por aqui
+            </p>
           </div>
-        )}
+        </div>
 
-        <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-lg border border-border p-4">
+        {businesses && businesses.length > 1 && (
+          <Select
+            aria-label="Negócio"
+            className="w-44 shrink-0"
+            value={businessSlug ?? ""}
+            onChange={(e) => setBusinessOverride(e.target.value)}
+          >
+            {businesses.map((business) => (
+              <option key={business.id} value={business.slug}>
+                {business.name}
+              </option>
+            ))}
+          </Select>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        <div className="mx-auto flex max-w-2xl flex-col gap-5">
           {messages.map((message, index) => (
             <ChatBubble key={index} message={message} />
           ))}
           {isSending && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 pl-11 text-sm text-muted-foreground">
               <Spinner className="h-4 w-4" />
               Digitando...
             </div>
           )}
           <div ref={bottomRef} />
         </div>
+      </div>
 
-        {error && <Alert variant="destructive">{error}</Alert>}
+      {error && (
+        <div className="px-4 sm:px-6">
+          <div className="mx-auto max-w-2xl">
+            <Alert variant="destructive">{error}</Alert>
+          </div>
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <div className="border-t border-border px-4 py-4 sm:px-6">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-2xl items-end gap-2">
           <textarea
-            className="h-10 flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="max-h-32 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder="Escreva sua mensagem..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -134,23 +148,24 @@ function AssistantChat() {
               }
             }}
           />
-          <Button type="submit" disabled={isSending || !input.trim() || !businessSlug}>
+          <button
+            type="submit"
+            aria-label="Enviar"
+            disabled={isSending || !input.trim() || !businessSlug}
+            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
             <Send className="h-4 w-4" />
-            Enviar
-          </Button>
+          </button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 export default function AssistentePage() {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
-      <h1 className="mb-6 text-2xl font-semibold text-foreground">Assistente de agendamento</h1>
-      <Suspense>
-        <AssistantChat />
-      </Suspense>
-    </main>
+    <Suspense>
+      <AssistantChat />
+    </Suspense>
   );
 }

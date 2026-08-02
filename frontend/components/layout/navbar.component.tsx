@@ -6,15 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   CalendarCheck2,
-  CalendarPlus,
-  CalendarRange,
-  Clock,
   LayoutDashboard,
   LogIn,
   LogOut,
   Menu,
-  Settings2,
-  Sparkles,
   Store,
   X,
   type LucideIcon,
@@ -144,69 +139,48 @@ export function Navbar() {
     router.push("/login");
   }
 
+  // A navegação completa por papel já existe na Sidebar do app logado
+  // (app)/layout.tsx. Este navbar público, quando logado, só precisa
+  // devolver a pessoa pro painel dela — repetir a lista inteira aqui
+  // duplicava links (ex: "Serviços" aparecia 2x pro admin) e lotava a barra.
   function navLinks(onNavigate?: () => void) {
+    if (isLoading) {
+      return (
+        <span className="flex items-center px-3 py-1.5 text-muted-foreground">
+          <Spinner className="h-4 w-4" />
+        </span>
+      );
+    }
+
+    if (user?.role === "admin") {
+      return (
+        <NavLink href="/admin/dashboard" icon={LayoutDashboard} onNavigate={onNavigate}>
+          Ir para o painel
+        </NavLink>
+      );
+    }
+
+    if (user?.role === "client") {
+      return (
+        <>
+          <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
+            Serviços
+          </NavLink>
+          <NavLink href="/meus-agendamentos" icon={CalendarCheck2} onNavigate={onNavigate}>
+            Meus agendamentos
+          </NavLink>
+        </>
+      );
+    }
+
     return (
       <>
         <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
           Serviços
         </NavLink>
-
-        {isLoading && (
-          <span className="flex items-center px-3 py-1.5 text-muted-foreground">
-            <Spinner className="h-4 w-4" />
-          </span>
-        )}
-
-        {!isLoading && user?.role === "client" && (
-          <>
-            <NavLink href="/agendar" icon={CalendarPlus} onNavigate={onNavigate}>
-              Agendar
-            </NavLink>
-            <NavLink href="/assistente" icon={Sparkles} onNavigate={onNavigate}>
-              Assistente
-            </NavLink>
-            <NavLink href="/meus-agendamentos" icon={CalendarCheck2} onNavigate={onNavigate}>
-              Meus agendamentos
-            </NavLink>
-          </>
-        )}
-
-        {!isLoading && user?.role === "admin" && (
-          <>
-            <div className="mx-1 hidden h-5 w-px bg-border md:block" aria-hidden />
-            {user.business && (
-              <span className="hidden items-center gap-1.5 px-2 text-sm font-medium text-muted-foreground md:flex">
-                <Store className="h-4 w-4" />
-                {user.business.name}
-              </span>
-            )}
-            <NavLink href="/admin/dashboard" icon={LayoutDashboard} onNavigate={onNavigate}>
-              Dashboard
-            </NavLink>
-            <NavLink href="/admin/servicos" icon={Settings2} onNavigate={onNavigate}>
-              Serviços
-            </NavLink>
-            <NavLink href="/admin/agendamentos" icon={CalendarRange} onNavigate={onNavigate}>
-              Agendamentos
-            </NavLink>
-            <NavLink href="/admin/horarios" icon={Clock} onNavigate={onNavigate}>
-              Horários
-            </NavLink>
-            <NavLink
-              href={user.business ? `/assistente?business=${user.business.slug}` : "/assistente"}
-              icon={Sparkles}
-              onNavigate={onNavigate}
-            >
-              Assistente
-            </NavLink>
-          </>
-        )}
-
-        {!isLoading && !user && (
-          <NavLink href="/login" icon={LogIn} onNavigate={onNavigate}>
-            Entrar
-          </NavLink>
-        )}
+        <NavLink href="/login" icon={LogIn} onNavigate={onNavigate}>
+          Entrar
+        </NavLink>
       </>
     );
   }

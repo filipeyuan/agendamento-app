@@ -171,8 +171,8 @@ function AgendamentosAdminPanel() {
         </Select>
       </div>
 
-      <Card className="shadow-md">
-        <CardContent className="py-4">
+      <Card className="shadow-elevated-md">
+        <CardContent className="p-5">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
             initialView="dayGridMonth"
@@ -228,7 +228,7 @@ export default function AgendamentosAdminPage() {
   return (
     <RequireAuth role="admin">
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
-        <h1 className="mb-6 text-2xl font-semibold text-foreground">Agendamentos</h1>
+        <h1 className="mb-6 text-3xl font-bold tracking-tight text-foreground">Agendamentos</h1>
         <AgendamentosAdminPanel />
       </main>
     </RequireAuth>
