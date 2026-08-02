@@ -19,6 +19,7 @@ import { AccountMenu } from "@/components/layout/account-menu.component";
 import { Logo } from "@/components/layout/logo.component";
 import { NotificationBell } from "@/components/layout/notification-bell.component";
 import { ThemeToggle } from "@/components/layout/theme-toggle.component";
+import { Wordmark } from "@/components/layout/wordmark.component";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/lib/auth/context";
@@ -70,7 +71,7 @@ function MobileMenuHeader({ onClose }: { onClose: () => void }) {
 
       <Link href="/" onClick={onClose} className="flex items-center gap-2 font-heading text-lg font-semibold">
         <Logo />
-        Zelo
+        <Wordmark inverted />
       </Link>
 
       {user ? (
@@ -137,6 +138,13 @@ export function Navbar() {
     setIsMenuOpen(false);
     await logout();
     router.push("/login");
+  }
+
+  function handleLogoClick(event: React.MouseEvent) {
+    if (pathname === "/") {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
+    }
   }
 
   // A navegação completa por papel já existe na Sidebar do app logado
@@ -208,34 +216,37 @@ export function Navbar() {
             : "border-b border-border bg-background/80 backdrop-blur"
         )}
       >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
-          <Logo />
-          Zelo
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
+        <Link
+          href="/"
+          onClick={handleLogoClick}
+          className="flex shrink-0 items-center gap-2.5 font-heading text-2xl font-bold text-foreground"
+        >
+          <Logo className="h-9 w-9" iconClassName="h-5 w-5" />
+          <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-1.5 md:flex">
+        <nav className="hidden items-center gap-3 pl-6 md:flex">
           {navLinks()}
-
-          <div className="ml-3 flex items-center gap-2 border-l border-border pl-4">
-            <NotificationBell />
-            <ThemeToggle />
-
-            {isLoading && <Spinner className="ml-1 h-4 w-4 text-muted-foreground" />}
-
-            {appCta()}
-
-            {!isLoading && user && <AccountMenu />}
-
-            {!isLoading && !user && (
-              <Link href="/cadastro" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
-                Cadastrar
-              </Link>
-            )}
-          </div>
+          {appCta()}
         </nav>
 
-          <div className="flex items-center gap-1 md:hidden">
+        <div className="ml-auto hidden items-center gap-2 md:flex">
+          <NotificationBell />
+          <ThemeToggle />
+
+          {isLoading && <Spinner className="ml-1 h-4 w-4 text-muted-foreground" />}
+
+          {!isLoading && user && <AccountMenu />}
+
+          {!isLoading && !user && (
+            <Link href="/cadastro" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
+              Cadastrar
+            </Link>
+          )}
+        </div>
+
+          <div className="ml-auto flex items-center gap-1 md:hidden">
             <NotificationBell />
             <ThemeToggle />
             <button

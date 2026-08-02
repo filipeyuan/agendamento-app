@@ -18,6 +18,7 @@ import {
 
 import { Logo } from "@/components/layout/logo.component";
 import { ThemeToggle } from "@/components/layout/theme-toggle.component";
+import { Wordmark } from "@/components/layout/wordmark.component";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils/cn";
@@ -135,7 +136,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full flex-col gap-6 p-4">
       <Link href="/" className="flex items-center gap-2 px-2 font-heading text-lg font-semibold text-foreground">
         <Logo />
-        Zelo
+        <Wordmark />
       </Link>
 
       <UserBlock />

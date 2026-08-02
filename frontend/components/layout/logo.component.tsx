@@ -17,10 +17,13 @@ export function Logo({ className, iconClassName }: { className?: string; iconCla
         className={cn("h-4 w-4", iconClassName)}
         aria-hidden
       >
-        <rect x="3.5" y="4.5" width="17" height="16" rx="3" stroke="white" strokeWidth="1.8" />
-        <path d="M3.5 9.5h17" stroke="white" strokeWidth="1.8" />
-        <path d="M8 2.5v3.5M16 2.5v3.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M8 14l2.2 2.2L16 10.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M6.5 6.5h11L6.5 17.5h11"
+          stroke="white"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </div>
   );
