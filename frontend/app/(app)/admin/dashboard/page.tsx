@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import { CalendarCheck2, DollarSign, TrendingDown, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck2, DollarSign, Users, type LucideIcon } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
@@ -12,6 +12,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { getAnalyticsSummary } from "@/lib/api/analytics";
 import type { AnalyticsSummary } from "@/lib/types/analytics";
 import { APPOINTMENT_STATUS_LABEL, type AppointmentStatus } from "@/lib/types/appointments";
+import { cn } from "@/lib/utils/cn";
 import { formatApiError } from "@/lib/utils/format-error";
 
 const STATUS_ORDER: AppointmentStatus[] = ["pending", "confirmed", "completed", "cancelled"];
@@ -27,16 +28,96 @@ function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function StatTile({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+const STAT_TINT: Record<string, string> = {
+  primary: "bg-primary/12 text-primary",
+  success: "bg-success/12 text-success",
+  warning: "bg-warning/15 text-warning",
+  destructive: "bg-destructive/12 text-destructive",
+};
+
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  tint,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  tint: keyof typeof STAT_TINT;
+}) {
   return (
     <Card>
-      <CardContent className="flex items-center gap-3 py-5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+      <CardContent className="flex items-center gap-4 py-6">
+        <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-full", STAT_TINT[tint])}>
+          <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <p className="break-words text-xl font-semibold text-foreground">{value}</p>
+          <p className="break-words text-2xl font-bold tracking-tight text-foreground">{value}</p>
           <p className="text-sm text-muted-foreground">{label}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DonutRing({
+  percentage,
+  color,
+  size = 96,
+  strokeWidth = 10,
+}: {
+  percentage: number;
+  color: string;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.min(Math.max(percentage, 0), 100) / 100) * circumference;
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--muted)" strokeWidth={strokeWidth} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.6s ease" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-lg font-bold text-foreground">
+        {Math.round(percentage)}%
+      </div>
+    </div>
+  );
+}
+
+function RateTile({
+  label,
+  detail,
+  percentage,
+  color,
+}: {
+  label: string;
+  detail: string;
+  percentage: number;
+  color: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-center gap-4 py-6">
+        <DonutRing percentage={percentage} color={color} size={56} strokeWidth={6} />
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="break-words text-sm text-muted-foreground">{detail}</p>
         </div>
       </CardContent>
     </Card>
@@ -48,7 +129,7 @@ function TrendChart({ data }: { data: AnalyticsSummary["by_day"] }) {
   const max = Math.max(1, ...data.map((d) => d.count));
 
   return (
-    <div className="flex items-end gap-1" style={{ height: 160 }}>
+    <div className="flex items-end gap-1.5" style={{ height: 180 }}>
       {data.map((day, index) => {
         const heightPct = (day.count / max) * 100;
 
@@ -60,7 +141,7 @@ function TrendChart({ data }: { data: AnalyticsSummary["by_day"] }) {
             onMouseLeave={() => setHovered((current) => (current === index ? null : current))}
           >
             {hovered === index && (
-              <div className="absolute -top-9 z-10 whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground shadow-sm">
+              <div className="shadow-elevated-md absolute -top-9 z-10 whitespace-nowrap rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground">
                 {new Date(`${day.date}T00:00:00`).toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   month: "2-digit",
@@ -70,8 +151,11 @@ function TrendChart({ data }: { data: AnalyticsSummary["by_day"] }) {
               </div>
             )}
             <div
-              className="w-full rounded-t-sm bg-primary transition-opacity group-hover:opacity-80"
-              style={{ height: `${Math.max(heightPct, 2)}%` }}
+              className="w-full rounded-t-full transition-opacity group-hover:opacity-80"
+              style={{
+                height: `${Math.max(heightPct, 4)}%`,
+                backgroundImage: "linear-gradient(180deg, var(--primary), color-mix(in oklch, var(--primary) 55%, transparent))",
+              }}
             />
           </div>
         );
@@ -190,14 +274,30 @@ function DashboardPanel() {
       {data && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile icon={CalendarCheck2} label="Agendamentos no período" value={String(totalAppointments)} />
+            <StatTile
+              icon={CalendarCheck2}
+              label="Agendamentos no período"
+              value={String(totalAppointments)}
+              tint="primary"
+            />
             <StatTile
               icon={DollarSign}
               label="Receita (confirmados + concluídos)"
               value={formatCurrency(data.revenue)}
+              tint="success"
             />
-            <StatTile icon={TrendingDown} label="Taxa de cancelamento" value={`${cancelledRate}%`} />
-            <StatTile icon={Users} label="Serviço mais agendado" value={data.top_services[0]?.name ?? "-"} />
+            <RateTile
+              label="Taxa de cancelamento"
+              detail={`${data.by_status.cancelled} de ${totalAppointments} agendamentos`}
+              percentage={cancelledRate}
+              color="var(--destructive)"
+            />
+            <StatTile
+              icon={Users}
+              label="Serviço mais agendado"
+              value={data.top_services[0]?.name ?? "-"}
+              tint="warning"
+            />
           </div>
 
           <Card>
@@ -240,7 +340,7 @@ export default function DashboardAdminPage() {
   return (
     <RequireAuth role="admin">
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
-        <h1 className="mb-6 text-2xl font-semibold text-foreground">Dashboard</h1>
+        <h1 className="mb-6 text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
         <DashboardPanel />
       </main>
     </RequireAuth>

@@ -97,18 +97,22 @@ const faq = [
   },
 ];
 
-const heroContainer: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
-};
-
-const heroItem: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-};
-
 function Hero() {
   const shouldReduceMotion = useReducedMotion();
+
+  const heroContainer: Variants = {
+    hidden: {},
+    show: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.12 } },
+  };
+
+  const heroItem: Variants = {
+    hidden: { opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 16 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: shouldReduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] },
+    },
+  };
 
   return (
     <section className="hero-dark relative -mt-16 overflow-hidden pt-16">
@@ -119,8 +123,8 @@ function Hero() {
       <div className="mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:py-24 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:py-32">
         <motion.div
           className="flex flex-col items-center gap-7 text-center lg:items-start lg:text-left"
-          initial={shouldReduceMotion ? undefined : "hidden"}
-          animate={shouldReduceMotion ? undefined : "show"}
+          initial="hidden"
+          animate="show"
           variants={heroContainer}
         >
           <motion.span
@@ -174,9 +178,13 @@ function Hero() {
 
         <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
           <motion.div
-            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, rotate: -3 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, rotate: -2 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 24, rotate: -2 }}
+            animate={{ opacity: 1, y: 0, rotate: -2 }}
+            transition={{
+              delay: shouldReduceMotion ? 0 : 0.5,
+              duration: shouldReduceMotion ? 0 : 0.7,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             className="shadow-elevated-lg overflow-hidden rounded-xl border border-white/10 bg-black"
           >
             <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/5 px-4 py-2.5">
@@ -195,21 +203,14 @@ function Hero() {
           </motion.div>
 
           <motion.div
-            initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, rotate: 6 }}
-            animate={
-              shouldReduceMotion
-                ? undefined
-                : { opacity: 1, y: [0, -8, 0], rotate: 3 }
-            }
-            transition={
-              shouldReduceMotion
-                ? undefined
-                : {
-                    opacity: { delay: 0.9, duration: 0.6 },
-                    rotate: { delay: 0.9, duration: 0.6 },
-                    y: { delay: 1.5, duration: 5, repeat: Infinity, ease: "easeInOut" },
-                  }
-            }
+            initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 24, rotate: 3 }}
+            animate={{ opacity: 1, y: shouldReduceMotion ? 0 : [0, -8, 0], rotate: 3 }}
+            transition={{
+              opacity: { delay: shouldReduceMotion ? 0 : 0.9, duration: shouldReduceMotion ? 0 : 0.6 },
+              y: shouldReduceMotion
+                ? { duration: 0 }
+                : { delay: 1.5, duration: 5, repeat: Infinity, ease: "easeInOut" },
+            }}
             className="shadow-elevated-lg absolute -bottom-10 -right-6 w-[42%] overflow-hidden rounded-[1.75rem] border-[6px] border-neutral-900 sm:-right-10"
             style={{ backgroundColor: "var(--hero-card-bg)" }}
           >
