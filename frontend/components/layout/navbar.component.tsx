@@ -12,7 +12,7 @@ import {
   LogIn,
   LogOut,
   Menu,
-  Sparkles,
+  Settings2,
   Store,
   X,
   type LucideIcon,
@@ -177,16 +177,12 @@ export function Navbar() {
         ? [
             { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
             { href: "/admin/agendamentos", label: "Agendamentos", icon: CalendarRange },
-            {
-              href: user.business ? `/assistente?business=${user.business.slug}` : "/assistente",
-              label: "Assistente",
-              icon: Sparkles,
-            },
+            { href: "/admin/servicos", label: "Serviços", icon: Settings2 },
           ]
         : [
             { href: "/agendar", label: "Agendar", icon: CalendarPlus },
             { href: "/meus-agendamentos", label: "Meus agendamentos", icon: CalendarCheck2 },
-            { href: "/assistente", label: "Assistente", icon: Sparkles },
+            { href: "/servicos", label: "Ver negócios", icon: Store },
           ];
 
     return quickLinks.map((item, index) => (
