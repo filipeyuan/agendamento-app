@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
+import { motion, useReducedMotion } from "motion/react";
 import useSWR from "swr";
 import { CalendarX, CreditCard, Store } from "lucide-react";
 
@@ -33,6 +34,7 @@ function formatPrice(price: number) {
 function AgendarForm() {
   const searchParams = useSearchParams();
   const business = searchParams.get("business");
+  const shouldReduceMotion = useReducedMotion();
 
   const { data: services } = useSWR(business ? ["services", business] : null, () =>
     listServices(business!)
@@ -138,7 +140,7 @@ function AgendarForm() {
         <div className="grid gap-6 md:grid-cols-[19rem_1fr]">
           <div>
             <Label>Data</Label>
-            <div className="rounded-lg border border-border bg-card p-2 shadow-sm">
+            <div className="shadow-elevated-md rounded-xl border border-border bg-card p-3">
               <DayPicker
                 mode="single"
                 locale={ptBR}
@@ -166,21 +168,28 @@ function AgendarForm() {
                   Nenhum horário livre nesta data.
                 </p>
               )}
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {slots?.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => setSelectedSlot(slot)}
-                    className={cn(
-                      "cursor-pointer rounded-md border border-border py-1.5 text-sm transition-colors hover:bg-accent",
-                      validSelectedSlot === slot &&
-                        "border-primary bg-primary text-primary-foreground hover:opacity-90"
-                    )}
-                  >
-                    {formatSlotTime(slot)}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {slots?.map((slot) => {
+                  const isSelected = validSelectedSlot === slot;
+
+                  return (
+                    <motion.button
+                      key={slot}
+                      type="button"
+                      onClick={() => setSelectedSlot(slot)}
+                      whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+                      className={cn(
+                        "cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                        isSelected
+                          ? "shadow-elevated-sm border-primary bg-primary text-primary-foreground"
+                          : "border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+                      )}
+                    >
+                      {formatSlotTime(slot)}
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
 

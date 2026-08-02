@@ -33,6 +33,10 @@
   --border: oklch(0.89 0.01 260);
   --input: oklch(0.89 0.01 260);
   --ring: oklch(0.5 0.21 260);
+
+  --elevation-sm: 0 1px 2px 0 rgb(23 23 35 / 0.06), 0 1px 1px -1px rgb(23 23 35 / 0.04);
+  --elevation-md: 0 6px 16px -4px rgb(23 23 35 / 0.12), 0 2px 6px -2px rgb(23 23 35 / 0.06);
+  --elevation-lg: 0 16px 40px -12px rgb(23 23 35 / 0.22), 0 6px 16px -6px rgb(23 23 35 / 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -67,6 +71,10 @@
     --border: oklch(0.3 0.015 260);
     --input: oklch(0.3 0.015 260);
     --ring: oklch(0.7 0.18 260);
+
+    --elevation-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 1px -1px rgb(0 0 0 / 0.2);
+    --elevation-md: 0 6px 16px -4px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+    --elevation-lg: 0 16px 40px -12px rgb(0 0 0 / 0.55), 0 6px 16px -6px rgb(0 0 0 / 0.4);
   }
 }
 
@@ -101,6 +109,10 @@
   --border: oklch(0.3 0.015 260);
   --input: oklch(0.3 0.015 260);
   --ring: oklch(0.7 0.18 260);
+
+  --elevation-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 1px -1px rgb(0 0 0 / 0.2);
+  --elevation-md: 0 6px 16px -4px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --elevation-lg: 0 16px 40px -12px rgb(0 0 0 / 0.55), 0 6px 16px -6px rgb(0 0 0 / 0.4);
 }
 
 @theme inline {
@@ -155,6 +167,18 @@ h2,
 h3 {
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
+}
+
+.shadow-elevated-sm {
+  box-shadow: var(--elevation-sm);
+}
+
+.shadow-elevated-md {
+  box-shadow: var(--elevation-md);
+}
+
+.shadow-elevated-lg {
+  box-shadow: var(--elevation-lg);
 }
 
 .fc {

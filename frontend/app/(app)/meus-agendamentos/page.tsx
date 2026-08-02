@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
+import { motion, useReducedMotion } from "motion/react";
 import useSWR from "swr";
 import { CalendarClock, CalendarX2, Repeat, Store, X } from "lucide-react";
 
@@ -64,6 +65,7 @@ function PaymentStatusAlert() {
 }
 
 function RescheduleForm({ appointment, onDone }: { appointment: Appointment; onDone: () => void }) {
+  const shouldReduceMotion = useReducedMotion();
   const [date, setDate] = useState(todayIsoDate());
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,7 +96,7 @@ function RescheduleForm({ appointment, onDone }: { appointment: Appointment; onD
     <div className="mt-3 flex flex-col gap-3 rounded-lg border border-border bg-muted/40 p-3">
       {error && <Alert variant="destructive">{error}</Alert>}
 
-      <div className="rounded-lg border border-border bg-card p-2">
+      <div className="shadow-elevated-sm rounded-xl border border-border bg-card p-3">
         <DayPicker
           mode="single"
           locale={ptBR}
@@ -114,20 +116,28 @@ function RescheduleForm({ appointment, onDone }: { appointment: Appointment; onD
         <p className="text-sm text-muted-foreground">Nenhum horário livre nesta data.</p>
       )}
 
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {slots?.map((slot) => (
-          <button
-            key={slot}
-            type="button"
-            onClick={() => setSelectedSlot(slot)}
-            className={cn(
-              "cursor-pointer rounded-md border border-border bg-card py-1.5 text-sm transition-colors hover:bg-accent",
-              selectedSlot === slot && "border-primary bg-primary text-primary-foreground hover:opacity-90"
-            )}
-          >
-            {formatSlotTime(slot)}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-2">
+        {slots?.map((slot) => {
+          const isSelected = selectedSlot === slot;
+
+          return (
+            <motion.button
+              key={slot}
+              type="button"
+              onClick={() => setSelectedSlot(slot)}
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+              className={cn(
+                "cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                isSelected
+                  ? "shadow-elevated-sm border-primary bg-primary text-primary-foreground"
+                  : "border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+              )}
+            >
+              {formatSlotTime(slot)}
+            </motion.button>
+          );
+        })}
       </div>
 
       <div className="flex gap-2">
