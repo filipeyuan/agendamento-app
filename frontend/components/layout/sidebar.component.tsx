@@ -103,7 +103,7 @@ function SidebarLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function UserBlock() {
+function UserBlock({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth();
   if (!user) return null;
 
@@ -111,7 +111,11 @@ function UserBlock() {
   const subtitle = user.role === "admin" && user.business ? user.business.name : user.email;
 
   return (
-    <div className="flex items-center gap-3 px-2">
+    <Link
+      href="/perfil"
+      onClick={onNavigate}
+      className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent"
+    >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
         {initial}
       </div>
@@ -119,7 +123,7 @@ function UserBlock() {
         <span className="truncate text-sm font-medium text-foreground">{user.name}</span>
         <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -139,9 +143,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Wordmark />
       </Link>
 
-      <UserBlock />
+      <UserBlock onNavigate={onNavigate} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="-mt-2 flex-1 overflow-y-auto border-t border-border pt-4">
         <SidebarLinks onNavigate={onNavigate} />
       </div>
 

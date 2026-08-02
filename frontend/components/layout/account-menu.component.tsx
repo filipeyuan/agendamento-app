@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, UserRound } from "lucide-react";
 
 import { useAuth } from "@/lib/auth/context";
 import { useClickOutside } from "@/lib/hooks/use-click-outside";
@@ -56,6 +57,14 @@ export function AccountMenu() {
           </div>
 
           <div className="border-t border-border p-1.5">
+            <Link
+              href="/perfil"
+              onClick={() => setIsOpen(false)}
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <UserRound className="h-4 w-4" />
+              Meu perfil
+            </Link>
             <button
               type="button"
               onClick={handleLogout}

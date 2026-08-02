@@ -6,10 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   CalendarCheck2,
+  CalendarPlus,
+  CalendarRange,
   LayoutDashboard,
   LogIn,
   LogOut,
   Menu,
+  Sparkles,
   Store,
   X,
   type LucideIcon,
@@ -71,7 +74,7 @@ function MobileMenuHeader({ onClose }: { onClose: () => void }) {
 
       <Link href="/" onClick={onClose} className="flex items-center gap-2 font-heading text-lg font-semibold">
         <Logo />
-        <Wordmark inverted />
+        <Wordmark />
       </Link>
 
       {user ? (
@@ -147,26 +150,12 @@ export function Navbar() {
     }
   }
 
-  // A navegação completa por papel já existe na Sidebar do app logado
-  // (app)/layout.tsx. Este navbar público, quando logado, só precisa
-  // devolver a pessoa pro painel dela — repetir a lista inteira aqui
-  // duplicava links (ex: "Serviços" aparecia 2x pro admin) e lotava a barra.
-  // O CTA de "voltar pro app" (painel/meus agendamentos) fica com peso de
-  // botão, não de link discreto, pra não deixar a barra parecendo vazia.
   function navLinks(onNavigate?: () => void) {
     if (isLoading) {
       return (
         <span className="flex items-center px-3 py-1.5 text-muted-foreground">
           <Spinner className="h-4 w-4" />
         </span>
-      );
-    }
-
-    if (user?.role === "client") {
-      return (
-        <NavLink href="/servicos" icon={Store} onNavigate={onNavigate}>
-          Serviços
-        </NavLink>
       );
     }
 
@@ -183,27 +172,39 @@ export function Navbar() {
       );
     }
 
-    return null;
-  }
-
-  function appCta(onNavigate?: () => void) {
-    if (isLoading || !user) return null;
-
-    const { href, label } =
+    const quickLinks =
       user.role === "admin"
-        ? { href: "/admin/dashboard", label: "Ir para o painel" }
-        : { href: "/meus-agendamentos", label: "Meus agendamentos" };
+        ? [
+            { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/admin/agendamentos", label: "Agendamentos", icon: CalendarRange },
+            {
+              href: user.business ? `/assistente?business=${user.business.slug}` : "/assistente",
+              label: "Assistente",
+              icon: Sparkles,
+            },
+          ]
+        : [
+            { href: "/agendar", label: "Agendar", icon: CalendarPlus },
+            { href: "/meus-agendamentos", label: "Meus agendamentos", icon: CalendarCheck2 },
+            { href: "/assistente", label: "Assistente", icon: Sparkles },
+          ];
 
-    return (
+    return quickLinks.map((item, index) => (
       <Link
-        href={href}
+        key={item.href}
+        href={item.href}
         onClick={onNavigate}
-        className={cn(buttonVariants({ size: "sm" }), "rounded-full")}
+        className={cn(
+          "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+          index === 0
+            ? "bg-primary text-primary-foreground shadow-[0_4px_14px_-4px_var(--primary)] hover:opacity-90"
+            : "border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        )}
       >
-        {user.role === "admin" ? <LayoutDashboard className="h-4 w-4" /> : <CalendarCheck2 className="h-4 w-4" />}
-        {label}
+        <item.icon className="h-4 w-4" />
+        {item.label}
       </Link>
-    );
+    ));
   }
 
   return (
@@ -226,9 +227,8 @@ export function Navbar() {
           <Wordmark />
         </Link>
 
-        <nav className="hidden items-center gap-3 pl-6 md:flex">
+        <nav className="hidden items-center gap-2 pl-6 md:flex">
           {navLinks()}
-          {appCta()}
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
@@ -261,8 +261,6 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Renderizado fora do <header> de propósito: backdrop-blur no header cria um
-          containing block pra descendentes fixed, o que quebraria o overlay em tela cheia. */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -290,11 +288,8 @@ export function Navbar() {
           >
             <MobileMenuHeader onClose={() => setIsMenuOpen(false)} />
 
-            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
+            <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-4">
               {navLinks(() => setIsMenuOpen(false))}
-              {user && (
-                <div className="mt-1">{appCta(() => setIsMenuOpen(false))}</div>
-              )}
             </nav>
 
             <div className="border-t border-border p-3">

@@ -52,8 +52,6 @@ export function AssistantChat({
   className?: string;
   onClose?: () => void;
 }) {
-  // onClose só é passado no widget flutuante (painel estreito) - reaproveita
-  // como sinal pra encolher o cabeçalho em vez de adicionar mais uma prop.
   const compact = Boolean(onClose);
   const { data: businesses } = useSWR("businesses", listBusinesses);
 

@@ -21,6 +21,12 @@ interface AuthContextValue {
     business_name?: string;
   }) => Promise<User>;
   logout: () => Promise<void>;
+  updateProfile: (payload: { name: string; email: string; phone?: string }) => Promise<User>;
+  updatePassword: (payload: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -72,8 +78,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function updateProfile(payload: { name: string; email: string; phone?: string }) {
+    const updated = await authApi.updateProfile(payload);
+    await mutate(updated, false);
+    return updated;
+  }
+
+  async function updatePassword(payload: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    await authApi.updatePassword(payload);
+  }
+
   return (
-    <AuthContext value={{ user: user ?? null, isLoading, login, register, logout }}>
+    <AuthContext
+      value={{ user: user ?? null, isLoading, login, register, logout, updateProfile, updatePassword }}
+    >
       {children}
     </AuthContext>
   );
