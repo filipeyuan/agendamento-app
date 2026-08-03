@@ -196,6 +196,29 @@ class DeleteAccountTest extends TestCase
     }
 
     #[Test]
+    public function deleting_an_admin_account_keeps_the_business_when_another_admin_remains(): void
+    {
+        $business = Business::factory()->create();
+        $admin = User::factory()->create([
+            'password' => Hash::make('senha-atual'),
+            'role' => UserRole::Admin,
+            'business_id' => $business->id,
+        ]);
+        $otherAdmin = User::factory()->create(['role' => UserRole::Admin, 'business_id' => $business->id]);
+
+        $token = $admin->createToken('api')->plainTextToken;
+
+        $response = $this->withToken($token)->deleteJson('/api/me', [
+            'password' => 'senha-atual',
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseMissing('users', ['id' => $admin->id]);
+        $this->assertDatabaseHas('businesses', ['id' => $business->id]);
+        $this->assertDatabaseHas('users', ['id' => $otherAdmin->id]);
+    }
+
+    #[Test]
     public function guests_cannot_deactivate_or_delete_an_account(): void
     {
         $this->patchJson('/api/me/deactivate', ['password' => 'x'])->assertUnauthorized();

@@ -166,7 +166,13 @@ class AuthController extends Controller
             $user->tokens()->delete();
 
             if ($user->isAdmin() && $user->business_id) {
-                Business::whereKey($user->business_id)->delete();
+                $hasOtherAdmins = User::where('business_id', $user->business_id)
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+
+                if (! $hasOtherAdmins) {
+                    Business::whereKey($user->business_id)->delete();
+                }
             }
 
             $user->delete();

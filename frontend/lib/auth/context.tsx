@@ -4,6 +4,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import useSWR from "swr";
 
 import * as authApi from "@/lib/api/auth";
+import { acceptInvite as acceptInviteRequest } from "@/lib/api/invites";
 import { clearToken, getToken, setToken } from "@/lib/auth/token";
 import type { User } from "@/lib/types/users";
 
@@ -30,6 +31,12 @@ interface AuthContextValue {
   deactivateAccount: (password: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  acceptInvite: (payload: {
+    token: string;
+    name: string;
+    password: string;
+    password_confirmation: string;
+  }) => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -111,6 +118,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await mutate();
   }
 
+  async function acceptInvite(payload: {
+    token: string;
+    name: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    const { user, token } = await acceptInviteRequest(payload);
+    setToken(token);
+    await mutate(user, false);
+    return user;
+  }
+
   return (
     <AuthContext
       value={{
@@ -124,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         deactivateAccount,
         deleteAccount,
         refreshUser,
+        acceptInvite,
       }}
     >
       {children}

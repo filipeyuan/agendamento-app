@@ -13,6 +13,7 @@ import {
   Settings2,
   Sparkles,
   Store,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -97,6 +98,9 @@ function SidebarLinks({ onNavigate }: { onNavigate?: () => void }) {
             onNavigate={onNavigate}
           >
             Assistente
+          </SidebarLink>
+          <SidebarLink href="/admin/equipe" icon={Users} onNavigate={onNavigate}>
+            Equipe
           </SidebarLink>
           <SidebarLink href="/admin/plano" icon={Crown} onNavigate={onNavigate}>
             Plano
