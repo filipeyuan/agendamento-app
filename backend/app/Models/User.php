@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Mail\EmailVerificationMail;
+use App\Mail\PasswordResetMail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,7 +15,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use Throwable;
 
 /**
  * @property UserRole $role
@@ -34,6 +40,48 @@ class User extends Authenticatable
     public function isDeactivated(): bool
     {
         return $this->deactivated_at !== null;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function sendEmailVerification(): void
+    {
+        $token = Str::random(40);
+        $this->forceFill(['email_verification_token' => $token])->save();
+
+        /** @var array<int, string> $allowedOrigins */
+        $allowedOrigins = config('cors.allowed_origins');
+        $frontendUrl = rtrim($allowedOrigins[0] ?? 'http://localhost:3000', '/');
+        $url = "{$frontendUrl}/verificar-email?token={$token}";
+
+        try {
+            Mail::to($this->email)->send(new EmailVerificationMail($url));
+        } catch (Throwable $e) {
+            Log::warning('Falha ao enviar e-mail de verificação.', [
+                'user_id' => $this->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        /** @var array<int, string> $allowedOrigins */
+        $allowedOrigins = config('cors.allowed_origins');
+        $frontendUrl = rtrim($allowedOrigins[0] ?? 'http://localhost:3000', '/');
+        $url = "{$frontendUrl}/redefinir-senha?token={$token}&email=".urlencode($this->email);
+
+        try {
+            Mail::to($this->email)->send(new PasswordResetMail($url));
+        } catch (Throwable $e) {
+            Log::warning('Falha ao enviar e-mail de redefinição de senha.', [
+                'user_id' => $this->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

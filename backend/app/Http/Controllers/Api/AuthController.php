@@ -61,6 +61,7 @@ class AuthController extends Controller
         ]);
 
         $user->refresh()->loadMissing('business');
+        $user->sendEmailVerification();
 
         $token = $user->createToken('api')->plainTextToken;
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { EmailVerificationBanner } from "@/components/auth/email-verification-banner.component";
 import { AppTopBar } from "@/components/layout/app-topbar.component";
 import { Sidebar } from "@/components/layout/sidebar.component";
 
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopBar onMenuClick={() => setIsMenuOpen(true)} />
+        <EmailVerificationBanner />
         {children}
       </div>
     </div>

@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'phone' => $this->phone,
+            'email_verified' => $this->email_verified_at !== null,
             'business' => $this->when($this->business_id !== null, fn () => BusinessResource::make($this->whenLoaded('business'))),
         ];
     }
