@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessHourController;
+use App\Http\Controllers\Api\BusinessInviteController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\NotificationController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StripeWebhookController;
+use App\Http\Controllers\Api\TeamController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -31,6 +33,8 @@ Route::middleware('throttle:auth')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
     Route::post('/reset-password', [PasswordResetController::class, 'reset']);
     Route::post('/email/verify', [EmailVerificationController::class, 'verify']);
+    Route::get('/invites/{token}', [BusinessInviteController::class, 'show']);
+    Route::post('/invites/accept', [BusinessInviteController::class, 'accept']);
 });
 
 Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
@@ -81,6 +85,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/business/banner', [BusinessController::class, 'updateBanner']);
         Route::delete('/business/banner', [BusinessController::class, 'removeBanner']);
         Route::put('/business/accent-color', [BusinessController::class, 'updateAccentColor']);
+
+        Route::get('/team', [TeamController::class, 'index']);
+        Route::post('/team/invite', [TeamController::class, 'invite']);
+        Route::delete('/team/invites/{invite}', [TeamController::class, 'cancelInvite']);
+        Route::delete('/team/members/{member}', [TeamController::class, 'removeMember']);
 
         Route::get('/schedule-blocks', [ScheduleBlockController::class, 'index']);
         Route::post('/schedule-blocks', [ScheduleBlockController::class, 'store']);

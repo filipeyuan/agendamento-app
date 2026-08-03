@@ -129,6 +129,14 @@ class Business extends Model
     }
 
     /**
+     * @return HasMany<BusinessInvite, $this>
+     */
+    public function invites(): HasMany
+    {
+        return $this->hasMany(BusinessInvite::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
