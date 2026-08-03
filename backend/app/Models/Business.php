@@ -22,6 +22,11 @@ use Illuminate\Support\Carbon;
  * @property int $assistant_daily_count
  * @property Carbon|null $assistant_daily_date
  * @property Carbon|null $premium_prompt_seen_at
+ * @property string|null $logo_url
+ * @property string|null $logo_public_id
+ * @property string|null $banner_url
+ * @property string|null $banner_public_id
+ * @property string|null $accent_color
  */
 #[Fillable(['name', 'slug'])]
 class Business extends Model

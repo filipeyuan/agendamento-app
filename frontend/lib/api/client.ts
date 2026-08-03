@@ -15,12 +15,13 @@ export class ApiError extends Error {
 
 export async function apiFetch(path: string, options: RequestInit = {}) {
   const token = typeof window !== "undefined" ? getToken() : null;
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
 
   return fetch(`${API_URL}${path}`, {
     cache: "no-store",
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,

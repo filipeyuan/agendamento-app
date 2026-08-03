@@ -22,6 +22,9 @@ class BusinessResource extends JsonResource
             'slug' => $this->slug,
             'plan' => $this->plan,
             'premium_prompt_due' => $this->isPremiumPromptDue(),
+            'logo_url' => $this->logo_url,
+            'banner_url' => $this->banner_url,
+            'accent_color' => $this->accent_color,
         ];
     }
 }
