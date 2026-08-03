@@ -25,4 +25,14 @@ class UpdateProfileRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Esse e-mail já está cadastrado.',
+        ];
+    }
 }

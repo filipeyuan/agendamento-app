@@ -14,6 +14,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Business;
+use App\Models\BusinessHour;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,18 @@ class AuthController extends Controller
                 'slug' => $this->uniqueSlug((string) $request->validated('business_name')),
             ])
             : null;
+
+        if ($business) {
+            for ($dayOfWeek = 0; $dayOfWeek <= 6; $dayOfWeek++) {
+                BusinessHour::create([
+                    'business_id' => $business->id,
+                    'day_of_week' => $dayOfWeek,
+                    'is_open' => true,
+                    'start_time' => config('booking.business_hours.start'),
+                    'end_time' => config('booking.business_hours.end'),
+                ]);
+            }
+        }
 
         $user = User::create([
             'name' => $request->validated('name'),

@@ -6,6 +6,7 @@ namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
 use App\Models\Business;
+use App\Models\BusinessHour;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -56,6 +57,26 @@ class RegisterTest extends TestCase
         $this->assertSame(UserRole::Admin, $user->role);
         $this->assertNotNull($user->business_id);
         $this->assertDatabaseHas('businesses', ['name' => 'Barbearia do João', 'slug' => 'barbearia-do-joao']);
+    }
+
+    #[Test]
+    public function it_seeds_default_business_hours_for_a_new_business(): void
+    {
+        $this->postJson('/api/register', [
+            'name' => 'João Barbeiro',
+            'email' => 'joao@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'account_type' => 'business',
+            'business_name' => 'Barbearia do João',
+        ])->assertCreated();
+
+        $business = Business::query()->where('slug', 'barbearia-do-joao')->firstOrFail();
+        $hours = BusinessHour::query()->where('business_id', $business->id)->orderBy('day_of_week')->get();
+
+        $this->assertCount(7, $hours);
+        $this->assertTrue($hours->every(fn (BusinessHour $hour) => $hour->is_open));
+        $this->assertTrue($hours->every(fn (BusinessHour $hour) => $hour->start_time !== null && $hour->end_time !== null));
     }
 
     #[Test]
@@ -121,6 +142,7 @@ class RegisterTest extends TestCase
 
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors('email');
+        $response->assertJsonPath('errors.email.0', 'Esse e-mail já está cadastrado.');
     }
 
     #[Test]

@@ -28,4 +28,14 @@ class RegisterRequest extends FormRequest
             'business_name' => ['required_if:account_type,business', 'string', 'max:255'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Esse e-mail já está cadastrado.',
+        ];
+    }
 }

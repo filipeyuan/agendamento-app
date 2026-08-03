@@ -46,6 +46,7 @@ class UpdateProfileTest extends TestCase
 
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors('email');
+        $response->assertJsonPath('errors.email.0', 'Esse e-mail já está cadastrado.');
     }
 
     #[Test]
