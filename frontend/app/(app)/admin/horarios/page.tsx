@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   disconnectGoogleCalendar,
   getGoogleCalendarConnectUrl,
@@ -138,11 +138,15 @@ function BusinessHoursCard() {
         <CardTitle className="text-base">Horário de atendimento</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {isLoading && (
-          <div className="flex justify-center py-10">
-            <Spinner className="h-6 w-6 text-muted-foreground" />
-          </div>
-        )}
+        {isLoading &&
+          Array.from({ length: 7 }).map((_, index) => (
+            <div key={index} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 w-32" />
+            </div>
+          ))}
 
         {hours && <BusinessHoursEditor initialHours={hours} onSaved={reloadHours} />}
       </CardContent>
@@ -194,8 +198,12 @@ function GoogleCalendarCard() {
         {error && <Alert variant="destructive">{error}</Alert>}
 
         {isLoading ? (
-          <div className="flex justify-center py-6">
-            <Spinner className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-24 rounded-full" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-8 w-24" />
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -324,8 +332,16 @@ function ScheduleBlocksCard() {
         </form>
 
         {isLoading && (
-          <div className="flex justify-center py-10">
-            <Spinner className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3.5 w-32" />
+                </div>
+                <Skeleton className="h-8 w-24" />
+              </div>
+            ))}
           </div>
         )}
 

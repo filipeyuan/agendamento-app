@@ -1,21 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DayPicker } from "@daypicker/react";
 import { ptBR } from "@daypicker/react/locale";
 import { motion, useReducedMotion } from "motion/react";
 import useSWR from "swr";
-import { CalendarClock, CalendarX2, Repeat, Store, X } from "lucide-react";
+import { CalendarClock, CalendarPlus, CalendarX2, Repeat, Store, X } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cancelAppointment, myAppointments, rescheduleAppointment } from "@/lib/api/appointments";
 import { availableSlots as fetchAvailableSlots } from "@/lib/api/services";
 import {
@@ -221,8 +222,19 @@ function MeusAgendamentosList() {
     return (
       <>
         {filters}
-        <div className="flex justify-center py-16">
-          <Spinner className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader className="flex-row items-center justify-between">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <Skeleton className="h-3.5 w-40" />
+                <Skeleton className="h-3.5 w-32" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </>
     );
@@ -236,6 +248,12 @@ function MeusAgendamentosList() {
           icon={CalendarX2}
           title="Nenhum agendamento por aqui"
           description="Ajuste os filtros acima ou escolha um serviço pra marcar um horário."
+          action={
+            <Link href="/agendar" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
+              <CalendarPlus className="h-4 w-4" />
+              Agendar horário
+            </Link>
+          }
         />
       </>
     );
