@@ -10,6 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { getAnalyticsSummary } from "@/lib/api/analytics";
 import { useAuth } from "@/lib/auth/context";
@@ -219,6 +220,49 @@ function TopServices({ services }: { services: AnalyticsSummary["top_services"] 
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index}>
+            <CardContent className="flex items-center gap-4 py-6">
+              <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-3.5 w-28" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[180px] w-full" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-44" />
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Skeleton className="h-3 w-full rounded-full" />
+          <div className="flex gap-4">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
 function ProLockedOverlay() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-b-2xl bg-card/70 backdrop-blur-[1px]">
@@ -271,11 +315,7 @@ function DashboardPanel() {
         </Select>
       </div>
 
-      {isLoading && (
-        <div className="flex justify-center py-16">
-          <Spinner className="h-6 w-6 text-muted-foreground" />
-        </div>
-      )}
+      {isLoading && <DashboardSkeleton />}
 
       {error && !isLoading && failedAttempts <= 3 && (
         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">

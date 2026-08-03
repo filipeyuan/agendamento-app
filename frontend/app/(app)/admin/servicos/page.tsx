@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createService,
@@ -163,11 +163,22 @@ function ServicosAdminPanel() {
       </Card>
 
       <div className="flex flex-col gap-3">
-        {isLoading && (
-          <div className="flex justify-center py-16">
-            <Spinner className="h-6 w-6 text-muted-foreground" />
-          </div>
-        )}
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index}>
+              <CardContent className="flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-3.5 w-28" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
 
         {!isLoading && services?.length === 0 && (
           <EmptyState

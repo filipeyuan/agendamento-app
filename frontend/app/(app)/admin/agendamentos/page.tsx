@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { adminAppointments, updateAppointmentStatus } from "@/lib/api/appointments";
 import { toLocalIsoDate } from "@/lib/utils/date";
 import {
@@ -194,9 +195,7 @@ function AgendamentosAdminPanel() {
         </CardContent>
       </Card>
 
-      {isLoading && (
-        <p className="text-center text-sm text-muted-foreground">Carregando agendamentos...</p>
-      )}
+      {isLoading && <Skeleton className="mx-auto h-4 w-48" />}
 
       {!isLoading && appointments?.length === 0 && (
         <EmptyState
