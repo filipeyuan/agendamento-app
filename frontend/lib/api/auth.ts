@@ -73,3 +73,33 @@ export function deleteAccount(payload: { password: string }) {
     body: JSON.stringify(payload),
   });
 }
+
+export function forgotPassword(payload: { email: string }) {
+  return apiRequest<{ message: string }>("/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetPassword(payload: {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}) {
+  return apiRequest<{ message: string }>("/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function verifyEmail(payload: { token: string }) {
+  return apiRequest<{ message: string }>("/email/verify", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resendVerificationEmail() {
+  return apiRequest<{ message: string }>("/email/resend", { method: "POST" });
+}

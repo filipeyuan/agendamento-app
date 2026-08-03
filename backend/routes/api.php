@@ -9,8 +9,10 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessHourController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ScheduleBlockController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StripeWebhookController;
@@ -26,6 +28,9 @@ Route::get('/health', function () {
 Route::middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+    Route::post('/email/verify', [EmailVerificationController::class, 'verify']);
 });
 
 Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback']);
@@ -44,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/me/password', [AuthController::class, 'updatePassword']);
     Route::patch('/me/deactivate', [AuthController::class, 'deactivate']);
     Route::delete('/me', [AuthController::class, 'destroy']);
+    Route::post('/email/resend', [EmailVerificationController::class, 'resend']);
 
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments/mine', [AppointmentController::class, 'mine']);
