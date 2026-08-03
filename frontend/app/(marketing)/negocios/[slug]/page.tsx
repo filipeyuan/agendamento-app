@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarPlus, Clock, PackageSearch, Sparkles } from "lucide-react";
@@ -31,15 +33,44 @@ export default async function NegocioServicosPage({
   }
 
   const services = await listServices(slug);
+  const accentStyle = business.accent_color
+    ? ({ "--primary": business.accent_color } as CSSProperties)
+    : undefined;
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10" style={accentStyle}>
       <p className="mb-1 text-sm text-muted-foreground">
         <Link href="/servicos" className="hover:underline">
           Negócios
         </Link>
       </p>
-      <h1 className="mb-6 text-2xl font-semibold text-foreground">{business.name}</h1>
+
+      {business.banner_url && (
+        <div className="relative mt-3 h-40 w-full overflow-hidden rounded-2xl border border-border bg-muted sm:h-56">
+          <Image src={business.banner_url} alt="" fill priority className="object-cover" />
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "mb-6 flex items-center gap-3",
+          business.banner_url ? "-mt-8 ml-4 items-end sm:-mt-10" : "mt-3"
+        )}
+      >
+        {business.logo_url && (
+          <div
+            className={cn(
+              "relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted",
+              business.banner_url && "h-16 w-16 border-4 border-background shadow-md sm:h-20 sm:w-20"
+            )}
+          >
+            <Image src={business.logo_url} alt={business.name} fill className="object-cover" />
+          </div>
+        )}
+        <h1 className={cn("text-2xl font-semibold text-foreground", business.banner_url && "pb-1")}>
+          {business.name}
+        </h1>
+      </div>
 
       {services.length === 0 && (
         <EmptyState

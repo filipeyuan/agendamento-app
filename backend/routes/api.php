@@ -76,6 +76,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/business-hours', [BusinessHourController::class, 'index']);
         Route::put('/business-hours', [BusinessHourController::class, 'update']);
 
+        Route::post('/business/logo', [BusinessController::class, 'updateLogo']);
+        Route::delete('/business/logo', [BusinessController::class, 'removeLogo']);
+        Route::post('/business/banner', [BusinessController::class, 'updateBanner']);
+        Route::delete('/business/banner', [BusinessController::class, 'removeBanner']);
+        Route::put('/business/accent-color', [BusinessController::class, 'updateAccentColor']);
+
         Route::get('/schedule-blocks', [ScheduleBlockController::class, 'index']);
         Route::post('/schedule-blocks', [ScheduleBlockController::class, 'store']);
         Route::delete('/schedule-blocks/{scheduleBlock}', [ScheduleBlockController::class, 'destroy']);
