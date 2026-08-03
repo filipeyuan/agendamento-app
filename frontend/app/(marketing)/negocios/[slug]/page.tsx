@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarPlus, Clock, PackageSearch } from "lucide-react";
+import { CalendarPlus, Clock, PackageSearch, Sparkles } from "lucide-react";
 
 import { Reveal } from "@/components/motion/reveal.component";
 import { buttonVariants } from "@/components/ui/button";
@@ -78,6 +78,16 @@ export default async function NegocioServicosPage({
           </Reveal>
         ))}
       </div>
+
+      {business.plan === "free" && (
+        <Link
+          href="/"
+          className="mt-10 flex w-fit items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Powered by Zelo
+        </Link>
+      )}
     </main>
   );
 }

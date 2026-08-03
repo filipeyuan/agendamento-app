@@ -21,6 +21,8 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Notificações**: e-mail (pagamento confirmado, agendamento confirmado/cancelado/remarcado) via Resend, mais um sino de notificações in-app com contagem de não lidas
 - **Dashboard de analytics**: volume de agendamentos por dia, distribuição por status, receita e serviços mais procurados
 - **Painel admin completo**: CRUD de serviços, gestão de agendamentos com calendário visual (FullCalendar), confirmar/cancelar/concluir
+- **Gestão de conta**: editar dados e trocar senha, desativar a conta (reversível, reativa no próximo login) ou excluir permanentemente, com bloqueio automático se houver agendamento futuro pendente
+- **Planos Free e Pro**: assinatura recorrente via Stripe Billing (checkout + portal de cobrança). O Free tem limites reais aplicados no backend (1 serviço cadastrado, cota diária de mensagens no assistente de IA); o Pro libera tudo
 
 ![Dashboard de analytics](./docs/screenshot-dashboard.png)
 
@@ -31,7 +33,7 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
 - **IA:** Google Gemini (function calling)
 - **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional)
-- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 106 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 136 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
 
 ## Deploy
 
@@ -59,5 +61,7 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 7**: Pagamento e notificações. Checkout via Stripe, e-mail transacional (Resend), notificações in-app e mensagens de validação em português
 - [x] **Fase 8**: Autoatendimento do cliente. Cancelar/remarcar o próprio agendamento, agendamento recorrente semanal, e ajustes de UX (confirmação antes de cancelar, histórico de notificações)
 - [x] **Fase 9**: Multi-tenant. Reembolso automático via Stripe ao cancelar um agendamento pago, modelo de dados isolado por negócio, cadastro self-service de negócio, navegação multi-negócio pro cliente e testes dedicados de isolamento entre negócios
+- [x] **Fase 10**: Redesign de UI e gestão de conta. Sidebar nova pro app logado, navbar e home repaginados fugindo do padrão genérico de template, menu de conta, e autoatendimento completo de perfil (editar dados, trocar senha, desativar ou excluir a conta)
+- [x] **Fase 11**: Monetização. Planos Free e Pro com assinatura recorrente via Stripe Billing, limites reais aplicados no backend (não só na tela), portal de cobrança pra gerenciar/cancelar a assinatura, e prompt de upgrade contextual pro admin no plano Free
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).

@@ -215,7 +215,7 @@ class CrossTenantIsolationTest extends TestCase
     {
         config(['services.gemini.api_key' => 'test-key']);
 
-        $businessA = Business::factory()->create();
+        $businessA = Business::factory()->pro()->create();
         foreach (range(0, 6) as $dayOfWeek) {
             BusinessHour::factory()->create(['business_id' => $businessA->id, 'day_of_week' => $dayOfWeek]);
         }

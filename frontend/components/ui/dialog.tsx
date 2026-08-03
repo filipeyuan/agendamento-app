@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 
 import { useClickOutside } from "@/lib/hooks/use-click-outside";
+import { cn } from "@/lib/utils/cn";
 
 interface DialogProps {
   open: boolean;
@@ -12,9 +13,15 @@ interface DialogProps {
   title: string;
   description?: string;
   children: ReactNode;
+  size?: "sm" | "lg";
 }
 
-export function Dialog({ open, onClose, title, description, children }: DialogProps) {
+const sizeClasses = {
+  sm: "max-w-sm",
+  lg: "max-w-lg",
+};
+
+export function Dialog({ open, onClose, title, description, children, size = "sm" }: DialogProps) {
   const shouldReduceMotion = useReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +55,10 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
             role="dialog"
             aria-modal="true"
             aria-labelledby="dialog-title"
-            className="shadow-elevated-lg w-full max-w-sm rounded-2xl border border-border bg-card p-6"
+            className={cn(
+              "shadow-elevated-lg w-full rounded-2xl border border-border bg-card p-6",
+              sizeClasses[size]
+            )}
             initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95, y: shouldReduceMotion ? 0 : 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95, y: shouldReduceMotion ? 0 : 8 }}

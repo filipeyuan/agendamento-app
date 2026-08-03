@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\BusinessPlan;
 use App\Models\Business;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -26,5 +27,12 @@ class BusinessFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name).'-'.Str::lower(Str::random(6)),
         ];
+    }
+
+    public function pro(): static
+    {
+        return $this->afterCreating(function (Business $business) {
+            $business->forceFill(['plan' => BusinessPlan::Pro])->save();
+        });
     }
 }

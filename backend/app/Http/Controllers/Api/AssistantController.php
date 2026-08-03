@@ -23,8 +23,21 @@ class AssistantController extends Controller
 
         $business = Business::where('slug', $request->validated('business'))->firstOrFail();
 
+        abort_if(
+            $business->hasReachedAssistantDailyLimit(),
+            403,
+            'Limite de '.Business::FREE_ASSISTANT_DAILY_LIMIT.' mensagens gratuitas do assistente atingido hoje. Assine o Pro pra mensagens ilimitadas.'
+        );
+
+        if (! $business->isPro()) {
+            $business->registerAssistantMessage();
+        }
+
         $result = $assistantService->reply($user, $request->validated('messages'), $business);
 
-        return response()->json($result);
+        return response()->json([
+            ...$result,
+            'assistant_quota_remaining' => $business->assistantMessagesRemainingToday(),
+        ]);
     }
 }

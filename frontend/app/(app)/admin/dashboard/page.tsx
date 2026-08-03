@@ -1,15 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import useSWR from "swr";
-import { CalendarCheck2, DollarSign, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck2, DollarSign, Lock, Users, type LucideIcon } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/require-auth.component";
 import { Alert } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { getAnalyticsSummary } from "@/lib/api/analytics";
+import { useAuth } from "@/lib/auth/context";
 import type { AnalyticsSummary } from "@/lib/types/analytics";
 import { APPOINTMENT_STATUS_LABEL, type AppointmentStatus } from "@/lib/types/appointments";
 import { cn } from "@/lib/utils/cn";
@@ -216,7 +219,23 @@ function TopServices({ services }: { services: AnalyticsSummary["top_services"] 
   );
 }
 
+function ProLockedOverlay() {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-b-2xl bg-card/70 backdrop-blur-[1px]">
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Lock className="h-4 w-4" />
+      </span>
+      <p className="text-sm font-medium text-foreground">Insight do plano Pro</p>
+      <Link href="/admin/plano" className={cn(buttonVariants({ size: "sm" }), "rounded-full")}>
+        Assinar Pro
+      </Link>
+    </div>
+  );
+}
+
 function DashboardPanel() {
+  const { user } = useAuth();
+  const isPro = user?.business?.plan === "pro";
   const [days, setDays] = useState(30);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const { data, error, isLoading } = useSWR(["analytics", days], () => getAnalyticsSummary(days), {
@@ -318,17 +337,18 @@ function DashboardPanel() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden">
             <CardHeader>
               <CardTitle className="text-base">Serviços mais agendados</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className={cn(!isPro && "pointer-events-none select-none blur-sm")}>
               {data.top_services.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum agendamento no período.</p>
               ) : (
                 <TopServices services={data.top_services} />
               )}
             </CardContent>
+            {!isPro && <ProLockedOverlay />}
           </Card>
         </>
       )}

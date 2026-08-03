@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\BusinessPlan;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Mail\PaymentConfirmedMail;
 use App\Mail\RecurringPaymentConfirmedMail;
 use App\Models\Appointment;
+use App\Models\Business;
 use App\Notifications\PaymentConfirmedNotification;
 use App\Notifications\RecurringPaymentConfirmedNotification;
 use App\Services\StripeService;
@@ -38,8 +40,23 @@ class StripeWebhookController extends Controller
             return response()->json(['message' => 'Assinatura inválida.'], 400);
         }
 
+        $type = $event['type'] ?? null;
+
         /** @var array<string, mixed> $session */
         $session = $event['data']['object'] ?? [];
+
+        if ($type === 'customer.subscription.updated' || $type === 'customer.subscription.deleted') {
+            $this->syncSubscriptionStatus($session);
+
+            return response()->json(['received' => true]);
+        }
+
+        if ($type === 'checkout.session.completed' && ($session['mode'] ?? null) === 'subscription') {
+            $this->activateSubscription($session);
+
+            return response()->json(['received' => true]);
+        }
+
         $sessionId = $session['id'] ?? null;
 
         if (! is_string($sessionId)) {
@@ -57,13 +74,51 @@ class StripeWebhookController extends Controller
 
         $paymentIntentId = $session['payment_intent'] ?? null;
 
-        match ($event['type'] ?? null) {
+        match ($type) {
             'checkout.session.completed' => $this->markAsPaid($appointments, is_string($paymentIntentId) ? $paymentIntentId : null),
             'checkout.session.expired' => $this->releaseUnpaidSlots($appointments),
             default => null,
         };
 
         return response()->json(['received' => true]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $session
+     */
+    private function activateSubscription(array $session): void
+    {
+        $businessId = $session['metadata']['business_id'] ?? null;
+        $customerId = $session['customer'] ?? null;
+        $subscriptionId = $session['subscription'] ?? null;
+
+        if (! is_string($businessId) || ! is_string($customerId) || ! is_string($subscriptionId)) {
+            return;
+        }
+
+        Business::query()->whereKey($businessId)->update([
+            'plan' => BusinessPlan::Pro->value,
+            'stripe_customer_id' => $customerId,
+            'stripe_subscription_id' => $subscriptionId,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $subscription
+     */
+    private function syncSubscriptionStatus(array $subscription): void
+    {
+        $subscriptionId = $subscription['id'] ?? null;
+
+        if (! is_string($subscriptionId)) {
+            return;
+        }
+
+        $isActive = in_array($subscription['status'] ?? null, ['active', 'trialing'], true);
+
+        Business::query()
+            ->where('stripe_subscription_id', $subscriptionId)
+            ->update(['plan' => $isActive ? BusinessPlan::Pro->value : BusinessPlan::Free->value]);
     }
 
     /**

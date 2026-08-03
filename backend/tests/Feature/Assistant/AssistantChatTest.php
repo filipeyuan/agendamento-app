@@ -26,7 +26,7 @@ class AssistantChatTest extends TestCase
 
         config(['services.gemini.api_key' => 'test-key']);
 
-        $this->business = Business::factory()->create();
+        $this->business = Business::factory()->pro()->create();
 
         foreach (range(0, 6) as $dayOfWeek) {
             BusinessHour::factory()->create(['business_id' => $this->business->id, 'day_of_week' => $dayOfWeek]);
