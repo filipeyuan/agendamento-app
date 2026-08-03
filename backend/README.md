@@ -41,7 +41,7 @@ O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro como cliente ou como admin dono de um negócio novo, login, logout), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), reembolso automático ao cancelar um agendamento pago, notificações in-app, o dashboard de analytics, e um conjunto dedicado de testes provando o isolamento entre negócios (um admin não vê nem edita nada de outro negócio, mesmo com token válido).
+Cobertura de testes: autenticação (registro como cliente ou como admin dono de um negócio novo, login, logout), autoatendimento de conta (editar perfil, trocar senha, desativar com reativação no login seguinte, excluir permanentemente, bloqueio se houver agendamento futuro pendente), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA (incluindo a cota diária de mensagens no plano Free), a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), reembolso automático ao cancelar um agendamento pago, assinatura do plano Pro via Stripe Billing (checkout, portal de cobrança, webhook de ativação/cancelamento da assinatura) e os limites reais do plano Free, notificações in-app, o dashboard de analytics, e um conjunto dedicado de testes provando o isolamento entre negócios (um admin não vê nem edita nada de outro negócio, mesmo com token válido).
 
 ## Variáveis de ambiente
 
@@ -81,6 +81,10 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | POST | `/api/login` | não | Autentica e retorna um token Sanctum |
 | POST | `/api/logout` | sim | Revoga o token atual |
 | GET | `/api/me` | sim | Retorna o usuário autenticado (inclui o negócio, se for admin) |
+| PUT | `/api/me` | sim | Atualiza nome, e-mail e telefone |
+| PUT | `/api/me/password` | sim | Troca a senha (exige a senha atual) |
+| PATCH | `/api/me/deactivate` | sim | Desativa a conta (revoga todos os tokens); reativa automaticamente no próximo login |
+| DELETE | `/api/me` | sim | Exclui a conta permanentemente. Bloqueado se houver agendamento futuro ativo (do cliente, ou do negócio inteiro no caso de admin); exclui o negócio junto se for o admin |
 
 ### Negócios (multi-tenant)
 
@@ -145,9 +149,19 @@ Com a conexão ativa (`App\Services\GoogleCalendarService`), confirmar um agenda
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | POST | `/api/appointments` | sim | Além de criar o agendamento, já retorna `checkout_url` com a sessão de pagamento do Stripe |
-| POST | `/api/stripe/webhook` | não (assinatura verificada via HMAC) | Recebe `checkout.session.completed` (marca o agendamento como pago e dispara e-mail/notificação) e `checkout.session.expired` (libera o horário se não foi pago) |
+| POST | `/api/stripe/webhook` | não (assinatura verificada via HMAC) | Recebe `checkout.session.completed` (marca o agendamento como pago e dispara e-mail/notificação, ou ativa o plano Pro se for uma assinatura), `checkout.session.expired` (libera o horário se não foi pago), e `customer.subscription.updated`/`.deleted` (sincroniza o plano do negócio com o status da assinatura) |
 
 O agendamento só é considerado reservado de fato depois do pagamento (`payment_status`); se o checkout expirar sem pagamento, `App\Http\Controllers\Api\StripeWebhookController` remove o agendamento pendente pra liberar o horário.
+
+### Planos (Free / Pro)
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| POST | `/api/admin/billing/checkout` | admin | Cria uma sessão de assinatura do Stripe (modo `subscription`) pro plano Pro e retorna `checkout_url` |
+| POST | `/api/admin/billing/portal` | admin | Cria uma sessão do portal de cobrança do Stripe (gerenciar forma de pagamento, ver faturas, cancelar), só disponível depois da primeira assinatura |
+| POST | `/api/admin/billing/dismiss-premium-prompt` | admin | Registra que o admin viu o aviso de upgrade pro Pro (reaparece depois de 24h se ele continuar no Free) |
+
+O plano fica em `businesses.plan` (`free` por padrão) e é atualizado só via webhook do Stripe, nunca direto pelo cliente. No plano Free os limites são aplicados de verdade no backend, não só escondidos na tela: `App\Http\Requests\StoreServiceRequest` bloqueia cadastrar mais de 1 serviço, e `App\Http\Controllers\Api\AssistantController` aplica uma cota diária de mensagens no assistente por IA (`Business::FREE_ASSISTANT_DAILY_LIMIT`).
 
 ### Notificações
 

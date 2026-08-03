@@ -8,7 +8,8 @@ Frontend do sistema de agendamento, consumindo a API Laravel via REST.
 - Tailwind CSS v4 (design tokens via variáveis CSS)
 - SWR (busca e revalidação de dados no client)
 - FullCalendar (calendário visual do painel admin) + `@daypicker/react` (seleção de data em `/agendar`)
-- Pagamento via Stripe Checkout: o backend retorna a URL da sessão, o front só redireciona (`window.location.href`), sem SDK do Stripe no client
+- Pagamento e assinatura via Stripe Checkout/Billing: o backend retorna a URL da sessão (pagamento do agendamento ou assinatura do plano Pro), o front só redireciona (`window.location.href`), sem SDK do Stripe no client
+- Motion (animação: scroll-reveal, transições de página, diálogos)
 - Sino de notificações no navbar (SWR com polling)
 - Componentes com variantes via `class-variance-authority`
 
@@ -51,17 +52,19 @@ Cobertura de testes: fluxo de agendamento (seleção de horário, conflito, aus�
 | `/negocios/[slug]` | público | Serviços disponíveis de um negócio |
 | `/login`, `/cadastro` | público | Autenticação; cadastro tem opção "tenho um negócio" (cria admin + negócio) |
 | `/agendar` | cliente autenticado | Escolhe serviço, data e horário livre num negócio, paga via Stripe Checkout |
-| `/assistente` | cliente autenticado | Chat com o assistente de agendamento via IA |
+| `/assistente` | cliente autenticado | Chat com o assistente de agendamento via IA (cota diária de mensagens no plano Free) |
 | `/meus-agendamentos` | cliente autenticado | Agendamentos do cliente, com status/pagamento, e cancelar/remarcar sozinho (até 2h antes) |
-| `/admin/servicos` | admin | CRUD de serviços |
+| `/perfil` | autenticado | Editar dados e senha, desativar ou excluir a conta |
+| `/admin/servicos` | admin | CRUD de serviços (limitado a 1 serviço ativo no plano Free) |
 | `/admin/agendamentos` | admin | Calendário (mês/semana/lista) com filtro de status + confirmar/cancelar/concluir |
 | `/admin/horarios` | admin | Horário de atendimento configurável, bloqueios de agenda e conexão com o Google Calendar |
-| `/admin/dashboard` | admin | Analytics: agendamentos por dia, status, receita e serviços mais procurados |
+| `/admin/dashboard` | admin | Analytics: agendamentos por dia, status, receita e serviços mais procurados (um dos cartões de insight é exclusivo do plano Pro) |
+| `/admin/plano` | admin | Plano atual, comparação Free/Pro, assinar ou gerenciar a assinatura (portal do Stripe) |
 
 ## Estrutura
 
-- `app/`: rotas (App Router)
-- `components/ui/`: kit de componentes (Button, Input, Card, Badge...), sem lógica de negócio
+- `app/`: rotas (App Router), com dois route groups: `(marketing)` (navbar/footer, páginas públicas) e `(app)` (sidebar, páginas autenticadas). Não mudam a URL, só o chrome ao redor da página
+- `components/ui/`: kit de componentes (Button, Input, Card, Badge, Dialog...), sem lógica de negócio
 - `components/auth/`, `components/layout/`: componentes de aplicação (`.component.tsx`)
 - `lib/api/`: camada de acesso à API (uma função por operação)
 - `lib/auth/`: contexto de autenticação, guarda de rota por role, storage do token

@@ -1,11 +1,22 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useReducedMotion, type Variants } from "motion/react";
-import { ChevronDown, CreditCard, LayoutDashboard, ShieldCheck, Smartphone, Users } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  CreditCard,
+  LayoutDashboard,
+  ShieldCheck,
+  Smartphone,
+  Users,
+} from "lucide-react";
 
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Reveal } from "@/components/motion/reveal.component";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils/cn";
 
 const steps = [
   {
@@ -56,6 +67,14 @@ const features = [
 
 const audiences = ["Salões de beleza", "Barbearias", "Clínicas e consultórios", "Estúdios", "Pet shops"];
 
+const freePlanItems = ["1 serviço cadastrado", "Agenda e painel completos", "Pagamento via Stripe"];
+
+const proPlanItems = [
+  "Serviços ilimitados",
+  "Assistente por IA liberado pros seus clientes",
+  "Sem marca \"Powered by Zelo\" na sua página",
+];
+
 const faq = [
   {
     question: "Como funciona o bloqueio de conflito de horário?",
@@ -86,6 +105,11 @@ const faq = [
     question: "Dá pra configurar um horário de atendimento diferente por dia da semana?",
     answer:
       "Sim, o admin define o horário de cada dia da semana (ou marca como fechado) e ainda pode bloquear datas ou intervalos específicos, tipo um feriado ou uma folga.",
+  },
+  {
+    question: "Qual a diferença entre o plano Free e o Pro?",
+    answer:
+      "No Free você cadastra 1 serviço e usa a agenda, o painel e o pagamento normalmente. O Pro (R$ 29,90/mês, sem fidelidade) libera serviços ilimitados, o assistente por IA pros seus clientes e remove a marca do Zelo da sua página pública.",
   },
 ];
 
@@ -313,6 +337,74 @@ function DashboardPreviewSection() {
   );
 }
 
+function PricingSection() {
+  return (
+    <section className="border-t border-border py-24 sm:py-28">
+      <div className="mx-auto max-w-4xl px-4">
+        <Reveal>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Planos</p>
+        </Reveal>
+
+        <Reveal delay={0.05} className="mt-4">
+          <h2 className="max-w-lg text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Comece de graça. Assine quando o seu negócio crescer.
+          </h2>
+        </Reveal>
+
+        <div className="mt-12 grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch">
+          <Reveal delay={0.1}>
+            <div className="flex h-full flex-col gap-4 rounded-2xl border border-border p-6">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Free</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">R$ 0</p>
+              </div>
+              <ul className="flex flex-1 flex-col gap-2.5">
+                {freePlanItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/cadastro" className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full")}>
+                Criar conta grátis
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.15}>
+            <div className="shadow-elevated-lg relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border border-primary bg-primary p-6 text-primary-foreground">
+              <span className="absolute right-6 top-6 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                Recomendado
+              </span>
+              <div>
+                <p className="text-sm font-semibold">Pro</p>
+                <p className="mt-1 text-2xl font-bold">
+                  R$ 29,90<span className="text-sm font-normal opacity-80">/mês</span>
+                </p>
+              </div>
+              <ul className="flex flex-1 flex-col gap-2.5">
+                {proPlanItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/cadastro"
+                className="w-full rounded-full bg-white py-2.5 text-center text-sm font-medium text-primary transition-opacity hover:opacity-90"
+              >
+                Começar agora
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FaqSection() {
   return (
     <section className="py-24 sm:py-32">
@@ -348,6 +440,7 @@ export default function Home() {
       <StepsSection />
       <FeaturesSection />
       <DashboardPreviewSection />
+      <PricingSection />
       <FaqSection />
     </main>
   );

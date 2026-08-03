@@ -29,6 +29,7 @@ interface AuthContextValue {
   }) => Promise<void>;
   deactivateAccount: (password: string) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -106,6 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await mutate(null, false);
   }
 
+  async function refreshUser() {
+    await mutate();
+  }
+
   return (
     <AuthContext
       value={{
@@ -118,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatePassword,
         deactivateAccount,
         deleteAccount,
+        refreshUser,
       }}
     >
       {children}

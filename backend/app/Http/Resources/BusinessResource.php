@@ -20,6 +20,8 @@ class BusinessResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'plan' => $this->plan,
+            'premium_prompt_due' => $this->isPremiumPromptDue(),
         ];
     }
 }

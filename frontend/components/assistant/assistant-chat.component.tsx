@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import useSWR from "swr";
 import { Send, Sparkles, User as UserIcon, X } from "lucide-react";
 
@@ -62,6 +63,7 @@ export function AssistantChat({
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   async function handleSubmit(event: FormEvent) {
@@ -75,8 +77,9 @@ export function AssistantChat({
     setIsSending(true);
 
     try {
-      const reply = await sendChatMessage(nextMessages, businessSlug);
-      setMessages([...nextMessages, { role: "assistant", content: reply }]);
+      const { message, quotaRemaining: remaining } = await sendChatMessage(nextMessages, businessSlug);
+      setMessages([...nextMessages, { role: "assistant", content: message }]);
+      setQuotaRemaining(remaining);
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -162,6 +165,17 @@ export function AssistantChat({
       )}
 
       <div className="border-t border-border px-4 py-4 sm:px-6">
+        {quotaRemaining !== null && (
+          <p className="mx-auto mb-2 max-w-2xl text-xs text-muted-foreground">
+            {quotaRemaining > 0
+              ? `${quotaRemaining} ${quotaRemaining === 1 ? "mensagem grátis restante" : "mensagens grátis restantes"} hoje.`
+              : "Você usou suas mensagens grátis de hoje."}{" "}
+            <Link href="/admin/plano" className="underline hover:text-foreground">
+              Assine o Pro pra mensagens ilimitadas
+            </Link>
+            .
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="mx-auto flex max-w-2xl items-end gap-2">
           <textarea
             className="max-h-32 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

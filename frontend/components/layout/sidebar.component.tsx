@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   CalendarRange,
   Clock,
+  Crown,
   LayoutDashboard,
   LogOut,
   Settings2,
@@ -96,6 +97,9 @@ function SidebarLinks({ onNavigate }: { onNavigate?: () => void }) {
             onNavigate={onNavigate}
           >
             Assistente
+          </SidebarLink>
+          <SidebarLink href="/admin/plano" icon={Crown} onNavigate={onNavigate}>
+            Plano
           </SidebarLink>
         </>
       )}

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\PaymentStatus;
 use App\Exceptions\PaymentSetupFailedException;
 use App\Models\Appointment;
+use App\Models\Business;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 class StripeService
 {
     private const API = 'https://api.stripe.com/v1';
+
+    private const PRO_PLAN_PRICE_CENTS = 2990;
 
     /**
      * Cria uma sessão de checkout do Stripe pro agendamento e retorna o id da sessão + a url de pagamento.
@@ -125,6 +128,77 @@ class StripeService
         }
 
         $appointment->update(['payment_status' => PaymentStatus::Refunded]);
+    }
+
+    /**
+     * @return array{id: string, url: string}
+     */
+    public function createSubscriptionCheckoutSession(Business $business, string $adminEmail): array
+    {
+        $frontendUrl = $this->frontendUrl();
+
+        $response = Http::asForm()->withToken((string) config('services.stripe.secret'))->post(
+            self::API.'/checkout/sessions',
+            [
+                'mode' => 'subscription',
+                'success_url' => "{$frontendUrl}/admin/plano?upgrade=success",
+                'cancel_url' => "{$frontendUrl}/admin/plano?upgrade=cancelled",
+                'customer_email' => $adminEmail,
+                'metadata' => ['business_id' => (string) $business->id],
+                'line_items' => [[
+                    'quantity' => 1,
+                    'price_data' => [
+                        'currency' => 'brl',
+                        'unit_amount' => self::PRO_PLAN_PRICE_CENTS,
+                        'recurring' => ['interval' => 'month'],
+                        'product_data' => [
+                            'name' => 'Zelo Pro',
+                        ],
+                    ],
+                ]],
+            ]
+        );
+
+        if ($response->failed()) {
+            Log::error('Falha ao criar sessão de assinatura no Stripe.', [
+                'business_id' => $business->id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new PaymentSetupFailedException;
+        }
+
+        return [
+            'id' => (string) $response->json('id'),
+            'url' => (string) $response->json('url'),
+        ];
+    }
+
+    /**
+     * @return array{url: string}
+     */
+    public function createBillingPortalSession(Business $business): array
+    {
+        $response = Http::asForm()->withToken((string) config('services.stripe.secret'))->post(
+            self::API.'/billing_portal/sessions',
+            [
+                'customer' => $business->stripe_customer_id,
+                'return_url' => "{$this->frontendUrl()}/admin/plano",
+            ]
+        );
+
+        if ($response->failed()) {
+            Log::error('Falha ao criar sessão do portal de cobrança no Stripe.', [
+                'business_id' => $business->id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new PaymentSetupFailedException;
+        }
+
+        return ['url' => (string) $response->json('url')];
     }
 
     /**

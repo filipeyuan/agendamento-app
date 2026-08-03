@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\GoogleCalendarController;
@@ -76,5 +77,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect']);
         Route::get('/google-calendar/status', [GoogleCalendarController::class, 'status']);
         Route::delete('/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect']);
+
+        Route::post('/billing/checkout', [BillingController::class, 'checkout']);
+        Route::post('/billing/portal', [BillingController::class, 'portal']);
+        Route::post('/billing/dismiss-premium-prompt', [BillingController::class, 'dismissPremiumPrompt']);
     });
 });
