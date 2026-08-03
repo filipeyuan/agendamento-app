@@ -16,6 +16,7 @@ import {
 import { HeroActions } from "@/components/layout/hero-actions.component";
 import { Reveal } from "@/components/motion/reveal.component";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/context";
 import { cn } from "@/lib/utils/cn";
 
 const steps = [
@@ -338,6 +339,15 @@ function DashboardPreviewSection() {
 }
 
 function PricingSection() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
+  const freeHref = !user ? "/cadastro" : isAdmin ? "/admin/dashboard" : "/servicos";
+  const freeLabel = !user ? "Criar conta grátis" : isAdmin ? "Ir para o painel" : "Ver serviços";
+
+  const proHref = !user ? "/cadastro" : isAdmin ? "/admin/plano" : "/servicos";
+  const proLabel = !user ? "Começar agora" : isAdmin ? "Assinar Pro" : "Ver serviços";
+
   return (
     <section className="border-t border-border py-24 sm:py-28">
       <div className="mx-auto max-w-4xl px-4">
@@ -366,8 +376,8 @@ function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link href="/cadastro" className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full")}>
-                Criar conta grátis
+              <Link href={freeHref} className={cn(buttonVariants({ variant: "outline" }), "w-full rounded-full")}>
+                {freeLabel}
               </Link>
             </div>
           </Reveal>
@@ -392,10 +402,10 @@ function PricingSection() {
                 ))}
               </ul>
               <Link
-                href="/cadastro"
+                href={proHref}
                 className="w-full rounded-full bg-white py-2.5 text-center text-sm font-medium text-primary transition-opacity hover:opacity-90"
               >
-                Começar agora
+                {proLabel}
               </Link>
             </div>
           </Reveal>
