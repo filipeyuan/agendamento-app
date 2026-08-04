@@ -53,7 +53,7 @@ class AppointmentController extends Controller
 
         $appointments = $user
             ->appointments()
-            ->with(['service', 'business'])
+            ->with(['service', 'business', 'staff'])
             ->when($request->status, fn ($query, $status) => $query->where('status', $status))
             ->when($scope === 'upcoming', fn ($query) => $query->where('start_at', '>=', now()))
             ->when($scope === 'past', fn ($query) => $query->where('start_at', '<', now()))
@@ -78,15 +78,17 @@ class AppointmentController extends Controller
             'from' => ['sometimes', 'date'],
             'to' => ['sometimes', 'date'],
             'status' => ['sometimes', Rule::enum(AppointmentStatus::class)],
+            'staff_id' => ['sometimes', 'integer', 'exists:users,id'],
         ]);
 
         $appointments = Appointment::query()
             ->where('business_id', $user->business_id)
-            ->with(['service', 'user', 'business'])
+            ->with(['service', 'user', 'business', 'staff'])
             ->when($request->date, fn ($query, $date) => $query->whereDate('start_at', $date))
             ->when($request->from, fn ($query, $from) => $query->where('start_at', '>=', $from))
             ->when($request->to, fn ($query, $to) => $query->where('start_at', '<', $to))
             ->when($request->status, fn ($query, $status) => $query->where('status', $status))
+            ->when($request->staff_id, fn ($query, $staffId) => $query->where('staff_id', $staffId))
             ->orderBy('start_at')
             ->get();
 
@@ -100,9 +102,12 @@ class AppointmentController extends Controller
     {
         $validated = $request->validate([
             'date' => ['required', 'date_format:Y-m-d'],
+            'staff_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
-        $slots = $bookingService->availableSlots($service, $validated['date']);
+        $staff = isset($validated['staff_id']) ? User::query()->find((int) $validated['staff_id']) : null;
+
+        $slots = $bookingService->availableSlots($service, $validated['date'], $staff);
 
         return response()->json([
             'slots' => array_map(fn (Carbon $slot) => $slot->toIso8601String(), $slots),
@@ -126,10 +131,13 @@ class AppointmentController extends Controller
         $service = Service::query()->findOrFail($request->validated('service_id'));
         abort_if(! $service instanceof Service, 404);
 
+        $staffId = $request->validated('staff_id');
+        $staff = $staffId ? User::query()->find((int) $staffId) : null;
+
         $occurrences = $request->validated('recurring_occurrences');
 
         if ($occurrences) {
-            return $this->storeRecurring($bookingService, $stripe, $user, $service, $request, (int) $occurrences);
+            return $this->storeRecurring($bookingService, $stripe, $user, $service, $request, (int) $occurrences, $staff);
         }
 
         $appointment = $bookingService->book(
@@ -137,10 +145,11 @@ class AppointmentController extends Controller
             service: $service,
             startAt: Carbon::parse($request->validated('start_at')),
             notes: $request->validated('notes'),
+            staff: $staff,
         );
 
         try {
-            $checkout = $stripe->createCheckoutSession($appointment->load(['service', 'user', 'business']));
+            $checkout = $stripe->createCheckoutSession($appointment->load(['service', 'user', 'business', 'staff']));
         } catch (Throwable $e) {
             $appointment->delete();
             throw $e;
@@ -160,7 +169,8 @@ class AppointmentController extends Controller
         User $user,
         Service $service,
         StoreAppointmentRequest $request,
-        int $occurrences
+        int $occurrences,
+        ?User $staff = null
     ): JsonResponse {
         $appointments = $bookingService->bookRecurring(
             client: $user,
@@ -168,13 +178,14 @@ class AppointmentController extends Controller
             firstStartAt: Carbon::parse($request->validated('start_at')),
             notes: $request->validated('notes'),
             occurrences: $occurrences,
+            staff: $staff,
         );
 
         $ids = $appointments->pluck('id');
 
         try {
             $checkout = $stripe->createRecurringCheckoutSession(
-                $appointments->map(fn (Appointment $appointment) => $appointment->load(['service', 'user', 'business']))
+                $appointments->map(fn (Appointment $appointment) => $appointment->load(['service', 'user', 'business', 'staff']))
             );
         } catch (Throwable $e) {
             Appointment::query()->whereIn('id', $ids)->delete();
@@ -183,7 +194,7 @@ class AppointmentController extends Controller
 
         Appointment::query()->whereIn('id', $ids)->update(['stripe_checkout_session_id' => $checkout['id']]);
 
-        $refreshed = Appointment::query()->whereIn('id', $ids)->with(['service', 'business'])->orderBy('start_at')->get();
+        $refreshed = Appointment::query()->whereIn('id', $ids)->with(['service', 'business', 'staff'])->orderBy('start_at')->get();
 
         return AppointmentResource::collection($refreshed)
             ->additional(['checkout_url' => $checkout['url']])
@@ -200,7 +211,7 @@ class AppointmentController extends Controller
 
         $bookingService->cancelByClient($appointment);
 
-        $appointment->refresh()->loadMissing(['service', 'user', 'business']);
+        $appointment->refresh()->loadMissing(['service', 'user', 'business', 'staff']);
 
         $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
         $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));
@@ -219,7 +230,7 @@ class AppointmentController extends Controller
         $this->authorize('manageOwn', $appointment);
 
         $rescheduled = $bookingService->reschedule($appointment, Carbon::parse($request->validated('start_at')));
-        $rescheduled->loadMissing(['service', 'user', 'business']);
+        $rescheduled->loadMissing(['service', 'user', 'business', 'staff']);
 
         $this->sendMailSafely($rescheduled, new AppointmentRescheduledMail($rescheduled));
         $this->notifySafely($rescheduled, new AppointmentRescheduledNotification($rescheduled));
@@ -248,7 +259,7 @@ class AppointmentController extends Controller
             'confirmed_by' => $user->id,
         ]);
 
-        $appointment->loadMissing(['service', 'user', 'business']);
+        $appointment->loadMissing(['service', 'user', 'business', 'staff']);
 
         if ($newStatus === AppointmentStatus::Confirmed) {
             if (! $appointment->google_event_id) {

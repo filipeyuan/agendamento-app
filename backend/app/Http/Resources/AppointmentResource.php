@@ -32,6 +32,7 @@ class AppointmentResource extends JsonResource
                 'name' => $this->user->name,
                 'email' => $this->user->email,
             ]),
+            'staff' => $this->whenLoaded('staff', fn () => $this->staff ? TeamMemberResource::make($this->staff) : null),
             'created_at' => $this->created_at,
         ];
     }

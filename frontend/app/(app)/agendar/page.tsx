@@ -46,6 +46,7 @@ function AgendarForm() {
   const serviceId = serviceIdOverride ?? (services?.[0] ? String(services[0].id) : "");
 
   const [date, setDate] = useState(todayIsoDate());
+  const [staffId, setStaffId] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [recurringOccurrences, setRecurringOccurrences] = useState("");
@@ -53,14 +54,15 @@ function AgendarForm() {
   const [error, setError] = useState<string | null>(null);
 
   const selectedService = services?.find((service) => String(service.id) === serviceId);
+  const requiresStaff = (selectedService?.staff.length ?? 0) > 0;
 
   const {
     data: slots,
     isLoading: isLoadingSlots,
     mutate: reloadSlots,
   } = useSWR(
-    serviceId && date ? ["available-slots", serviceId, date] : null,
-    () => fetchAvailableSlots(Number(serviceId), date)
+    serviceId && date && (!requiresStaff || staffId) ? ["available-slots", serviceId, date, staffId] : null,
+    () => fetchAvailableSlots(Number(serviceId), date, staffId ? Number(staffId) : undefined)
   );
 
   const validSelectedSlot = selectedSlot && slots?.includes(selectedSlot) ? selectedSlot : null;
@@ -74,6 +76,7 @@ function AgendarForm() {
     try {
       const { checkoutUrl } = await createAppointment({
         service_id: Number(serviceId),
+        staff_id: staffId ? Number(staffId) : undefined,
         start_at: validSelectedSlot,
         notes: notes || undefined,
         recurring_occurrences: recurringOccurrences ? Number(recurringOccurrences) : undefined,
@@ -126,6 +129,7 @@ function AgendarForm() {
             value={serviceId}
             onChange={(e) => {
               setServiceIdOverride(e.target.value);
+              setStaffId("");
               setSelectedSlot(null);
             }}
           >
@@ -136,6 +140,27 @@ function AgendarForm() {
             ))}
           </Select>
         </div>
+
+        {requiresStaff && (
+          <div>
+            <Label htmlFor="staff">Profissional</Label>
+            <Select
+              id="staff"
+              value={staffId}
+              onChange={(e) => {
+                setStaffId(e.target.value);
+                setSelectedSlot(null);
+              }}
+            >
+              <option value="">Escolha um profissional</option>
+              {selectedService?.staff.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-[19rem_1fr]">
           <div>
@@ -159,6 +184,9 @@ function AgendarForm() {
           <div className="flex flex-col gap-6">
             <div>
               <Label>Horário</Label>
+              {requiresStaff && !staffId && (
+                <p className="text-sm text-muted-foreground">Escolha um profissional pra ver os horários.</p>
+              )}
               {isLoadingSlots && (
                 <p className="text-sm text-muted-foreground">Carregando horários...</p>
               )}

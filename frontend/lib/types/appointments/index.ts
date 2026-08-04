@@ -1,5 +1,6 @@
 import type { Business } from "@/lib/types/businesses";
 import type { Service } from "@/lib/types/services";
+import type { TeamMember } from "@/lib/types/team";
 
 export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
@@ -52,5 +53,6 @@ export interface Appointment {
     name: string;
     email: string;
   };
+  staff?: TeamMember | null;
   created_at: string;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Assistant;
 
+use App\Enums\UserRole;
 use App\Models\Appointment;
 use App\Models\Business;
 use App\Models\BusinessHour;
@@ -174,5 +175,67 @@ class AssistantChatTest extends TestCase
 
         $response->assertOk();
         $this->assertEquals('Esse horário já foi ocupado, quer tentar outro?', $response->json('message'));
+    }
+
+    #[Test]
+    public function assistant_includes_assigned_staff_when_listing_services(): void
+    {
+        $staff = User::factory()->create(['role' => UserRole::Admin, 'business_id' => $this->business->id, 'name' => 'Ana']);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'name' => 'Corte de cabelo']);
+        $service->staff()->attach($staff);
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::sequence()
+                ->push($this->functionCallResponse('list_services'))
+                ->push($this->textResponse('Temos o Corte de cabelo com a Ana.')),
+        ]);
+
+        $client = User::factory()->create();
+
+        $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
+            'messages' => [['role' => 'user', 'content' => 'Quais serviços vocês têm?']],
+        ]);
+
+        Http::assertSent(function ($request) use ($service, $staff) {
+            $body = $request->data();
+
+            return isset($body['contents'][2]['parts'][0]['functionResponse']['response']['services'][0]['staff'][0]['id'])
+                && $body['contents'][2]['parts'][0]['functionResponse']['response']['services'][0]['id'] === $service->id
+                && $body['contents'][2]['parts'][0]['functionResponse']['response']['services'][0]['staff'][0]['id'] === $staff->id;
+        });
+    }
+
+    #[Test]
+    public function assistant_books_an_appointment_with_the_chosen_staff_member(): void
+    {
+        $staff = User::factory()->create(['role' => UserRole::Admin, 'business_id' => $this->business->id]);
+        $service = Service::factory()->create(['business_id' => $this->business->id, 'duration_minutes' => 30]);
+        $service->staff()->attach($staff);
+        $startAt = now()->addDay()->setTime(10, 0);
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::sequence()
+                ->push($this->functionCallResponse('book_appointment', [
+                    'service_id' => $service->id,
+                    'staff_id' => $staff->id,
+                    'start_at' => $startAt->format('Y-m-d H:i'),
+                ]))
+                ->push($this->textResponse('Prontinho, agendei com ela pra você!')),
+        ]);
+
+        $client = User::factory()->create();
+
+        $response = $this->actingAs($client)->postJson('/api/assistant/chat', [
+            'business' => $this->business->slug,
+            'messages' => [['role' => 'user', 'content' => 'Quero agendar amanhã às 10h com a Ana']],
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('appointments', [
+            'user_id' => $client->id,
+            'service_id' => $service->id,
+            'staff_id' => $staff->id,
+        ]);
     }
 }

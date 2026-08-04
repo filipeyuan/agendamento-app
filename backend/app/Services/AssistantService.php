@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\AppointmentSource;
 use App\Exceptions\AppointmentConflictException;
+use App\Exceptions\InvalidStaffAssignmentException;
 use App\Models\Business;
 use App\Models\Service;
 use App\Models\User;
@@ -125,6 +126,10 @@ class AssistantService
             Se o histórico da conversa já mostra que um agendamento foi criado com sucesso pro
             pedido atual, não verifique disponibilidade de novo nem trate como pendente: só
             confirme o que já foi feito.
+            Se o serviço tiver profissionais vinculados (campo "staff" na lista de serviços),
+            pergunte qual profissional o cliente prefere antes de checar disponibilidade ou
+            criar o agendamento, e use o "staff_id" escolhido nas ferramentas. Nunca invente
+            nem escolha um profissional por conta própria.
             Hoje é {$now->translatedFormat('l, d/m/Y')}, agora são
             {$now->format('H:i')}. Responda sempre em português do Brasil, de forma breve, em
             texto puro, sem markdown (sem **negrito**, sem listas com *).
@@ -149,6 +154,7 @@ class AssistantService
                     'properties' => [
                         'service_id' => ['type' => 'INTEGER', 'description' => 'ID do serviço'],
                         'date' => ['type' => 'STRING', 'description' => 'Data no formato YYYY-MM-DD'],
+                        'staff_id' => ['type' => 'INTEGER', 'description' => 'ID do profissional escolhido, obrigatório se o serviço tiver profissionais vinculados'],
                     ],
                     'required' => ['service_id', 'date'],
                 ],
@@ -162,6 +168,7 @@ class AssistantService
                         'service_id' => ['type' => 'INTEGER', 'description' => 'ID do serviço'],
                         'start_at' => ['type' => 'STRING', 'description' => 'Data e hora de início no formato YYYY-MM-DD HH:mm'],
                         'notes' => ['type' => 'STRING', 'description' => 'Observações opcionais do cliente'],
+                        'staff_id' => ['type' => 'INTEGER', 'description' => 'ID do profissional escolhido, obrigatório se o serviço tiver profissionais vinculados'],
                     ],
                     'required' => ['service_id', 'start_at'],
                 ],
@@ -192,6 +199,7 @@ class AssistantService
         $services = Service::query()
             ->where('business_id', $business->id)
             ->where('active', true)
+            ->with('staff:id,name')
             ->get(['id', 'name', 'duration_minutes', 'price']);
 
         return ['services' => $services->map(fn (Service $service) => [
@@ -199,6 +207,10 @@ class AssistantService
             'name' => $service->name,
             'duration_minutes' => $service->duration_minutes,
             'price' => (float) $service->price,
+            'staff' => $service->staff->map(fn (User $staff) => [
+                'id' => $staff->id,
+                'name' => $staff->name,
+            ])->all(),
         ])->all()];
     }
 
@@ -216,6 +228,18 @@ class AssistantService
 
     /**
      * @param  array<string, mixed>  $args
+     */
+    private function findStaff(array $args): ?User
+    {
+        if (! isset($args['staff_id']) || ! is_numeric($args['staff_id'])) {
+            return null;
+        }
+
+        return User::find((int) $args['staff_id']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $args
      * @return array<string, mixed>
      */
     private function checkAvailableSlots(array $args, Business $business): array
@@ -226,7 +250,11 @@ class AssistantService
             return ['error' => 'Serviço não encontrado.'];
         }
 
-        $slots = $this->bookingService->availableSlots($service, (string) $args['date']);
+        try {
+            $slots = $this->bookingService->availableSlots($service, (string) $args['date'], $this->findStaff($args));
+        } catch (InvalidStaffAssignmentException $exception) {
+            return ['error' => $exception->getMessage()];
+        }
 
         return ['slots' => array_map(fn (Carbon $slot) => $slot->format('Y-m-d H:i'), $slots)];
     }
@@ -250,8 +278,9 @@ class AssistantService
                 startAt: Carbon::parse((string) ($args['start_at'] ?? '')),
                 notes: isset($args['notes']) ? (string) $args['notes'] : null,
                 source: AppointmentSource::AiChat,
+                staff: $this->findStaff($args),
             );
-        } catch (AppointmentConflictException $exception) {
+        } catch (AppointmentConflictException|InvalidStaffAssignmentException $exception) {
             return ['error' => $exception->getMessage()];
         }
 

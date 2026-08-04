@@ -22,6 +22,7 @@ export async function createService(payload: {
   description?: string;
   duration_minutes: number;
   price: number;
+  staff_ids?: number[];
 }) {
   const { data } = await apiRequest<ApiResource<Service>>("/admin/services", {
     method: "POST",
@@ -38,6 +39,7 @@ export async function updateService(
     duration_minutes: number;
     price: number;
     active: boolean;
+    staff_ids: number[];
   }>
 ) {
   const { data } = await apiRequest<ApiResource<Service>>(`/admin/services/${id}`, {
@@ -51,9 +53,8 @@ export function deleteService(id: number) {
   return apiRequest<void>(`/admin/services/${id}`, { method: "DELETE" });
 }
 
-export async function availableSlots(serviceId: number, date: string) {
-  const { slots } = await apiRequest<{ slots: string[] }>(
-    `/services/${serviceId}/available-slots?date=${date}`
-  );
+export async function availableSlots(serviceId: number, date: string, staffId?: number) {
+  const query = staffId ? `?date=${date}&staff_id=${staffId}` : `?date=${date}`;
+  const { slots } = await apiRequest<{ slots: string[] }>(`/services/${serviceId}/available-slots${query}`);
   return slots;
 }

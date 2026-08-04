@@ -1,3 +1,5 @@
+import type { TeamMember } from "@/lib/types/team";
+
 export interface Service {
   id: number;
   name: string;
@@ -5,5 +7,6 @@ export interface Service {
   duration_minutes: number;
   price: number;
   active: boolean;
+  staff: TeamMember[];
   created_at: string;
 }

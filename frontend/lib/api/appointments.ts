@@ -7,6 +7,7 @@ interface ApiResource<T> {
 
 export async function createAppointment(payload: {
   service_id: number;
+  staff_id?: number;
   start_at: string;
   notes?: string;
   recurring_occurrences?: number;
@@ -51,12 +52,14 @@ export async function adminAppointments(filters?: {
   from?: string;
   to?: string;
   status?: AppointmentStatus;
+  staffId?: number;
 }) {
   const params = new URLSearchParams();
   if (filters?.date) params.set("date", filters.date);
   if (filters?.from) params.set("from", filters.from);
   if (filters?.to) params.set("to", filters.to);
   if (filters?.status) params.set("status", filters.status);
+  if (filters?.staffId) params.set("staff_id", String(filters.staffId));
   const query = params.toString() ? `?${params.toString()}` : "";
 
   const { data } = await apiRequest<ApiResource<Appointment[]>>(`/admin/appointments${query}`);
