@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateServiceRequest extends FormRequest
 {
@@ -14,7 +15,7 @@ class UpdateServiceRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
@@ -24,6 +25,12 @@ class UpdateServiceRequest extends FormRequest
             'duration_minutes' => ['sometimes', 'integer', 'min:5', 'max:600'],
             'price' => ['sometimes', 'numeric', 'min:0'],
             'active' => ['sometimes', 'boolean'],
+            'staff_ids' => ['sometimes', 'array'],
+            'staff_ids.*' => [
+                Rule::exists('users', 'id')->where(
+                    fn ($query) => $query->where('business_id', $this->user()?->business_id)->where('role', 'admin')
+                ),
+            ],
         ];
     }
 }

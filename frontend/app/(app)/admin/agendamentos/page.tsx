@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { adminAppointments, updateAppointmentStatus } from "@/lib/api/appointments";
+import { listTeam } from "@/lib/api/team";
 import { toLocalIsoDate } from "@/lib/utils/date";
 import {
   APPOINTMENT_STATUS_BADGE_VARIANT,
@@ -67,6 +68,7 @@ function AppointmentDetail({
           <p className="text-sm text-muted-foreground">
             {formatDateTime(appointment.start_at)} · {appointment.client?.name} (
             {appointment.client?.email})
+            {appointment.staff && ` · ${appointment.staff.name}`}
           </p>
           {appointment.notes && (
             <p className="text-sm text-muted-foreground">Obs: {appointment.notes}</p>
@@ -105,16 +107,25 @@ function AppointmentDetail({
 
 function AgendamentosAdminPanel() {
   const [status, setStatus] = useState<AppointmentStatus | "">("");
+  const [staffId, setStaffId] = useState("");
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  const { data: team } = useSWR("team", listTeam);
 
   const {
     data: appointments,
     isLoading,
     mutate: reloadAppointments,
   } = useSWR(
-    range ? ["admin-appointments", range.from, range.to, status] : null,
-    () => adminAppointments({ from: range!.from, to: range!.to, status: status || undefined })
+    range ? ["admin-appointments", range.from, range.to, status, staffId] : null,
+    () =>
+      adminAppointments({
+        from: range!.from,
+        to: range!.to,
+        status: status || undefined,
+        staffId: staffId ? Number(staffId) : undefined,
+      })
   );
 
   const events: EventInput[] = useMemo(
@@ -155,21 +166,42 @@ function AgendamentosAdminPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Label htmlFor="filter-status">Status</Label>
-        <Select
-          id="filter-status"
-          className="w-48"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as AppointmentStatus | "")}
-        >
-          <option value="">Todos</option>
-          {Object.entries(APPOINTMENT_STATUS_LABEL).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Select>
+      <div className="flex flex-wrap gap-4">
+        <div>
+          <Label htmlFor="filter-status">Status</Label>
+          <Select
+            id="filter-status"
+            className="w-48"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as AppointmentStatus | "")}
+          >
+            <option value="">Todos</option>
+            {Object.entries(APPOINTMENT_STATUS_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        {team && team.members.length > 1 && (
+          <div>
+            <Label htmlFor="filter-staff">Profissional</Label>
+            <Select
+              id="filter-staff"
+              className="w-48"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {team.members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
       </div>
 
       <Card className="shadow-elevated-md">

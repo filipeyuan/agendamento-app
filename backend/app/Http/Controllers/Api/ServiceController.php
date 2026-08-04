@@ -32,6 +32,7 @@ class ServiceController extends Controller
         $services = Service::query()
             ->where('business_id', $business->id)
             ->where('active', true)
+            ->with('staff')
             ->latest()
             ->get();
 
@@ -48,7 +49,7 @@ class ServiceController extends Controller
         $user = $request->user();
         abort_if(! $user instanceof User, 401);
 
-        $services = Service::query()->where('business_id', $user->business_id)->latest()->get();
+        $services = Service::query()->where('business_id', $user->business_id)->with('staff')->latest()->get();
 
         return ServiceResource::collection($services);
     }
@@ -69,7 +70,9 @@ class ServiceController extends Controller
             'business_id' => $user->business_id,
         ])->refresh();
 
-        return ServiceResource::make($service)->response()->setStatusCode(201);
+        $service->staff()->sync($request->validated('staff_ids', []));
+
+        return ServiceResource::make($service->load('staff'))->response()->setStatusCode(201);
     }
 
     /**
@@ -81,7 +84,11 @@ class ServiceController extends Controller
 
         $service->update($request->validated());
 
-        return ServiceResource::make($service);
+        if ($request->has('staff_ids')) {
+            $service->staff()->sync($request->validated('staff_ids', []));
+        }
+
+        return ServiceResource::make($service->load('staff'));
     }
 
     /**

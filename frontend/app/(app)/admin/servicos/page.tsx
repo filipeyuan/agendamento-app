@@ -20,10 +20,17 @@ import {
   listAdminServices,
   updateService,
 } from "@/lib/api/services";
+import { listTeam } from "@/lib/api/team";
 import type { Service } from "@/lib/types/services";
 import { formatApiError } from "@/lib/utils/format-error";
 
-const emptyForm = { name: "", description: "", duration_minutes: "30", price: "" };
+const emptyForm = {
+  name: "",
+  description: "",
+  duration_minutes: "30",
+  price: "",
+  staff_ids: [] as number[],
+};
 
 function formatPrice(price: number) {
   return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,6 +42,7 @@ function ServicosAdminPanel() {
     isLoading,
     mutate: reloadServices,
   } = useSWR("admin-services", listAdminServices);
+  const { data: team } = useSWR("team", listTeam);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +55,17 @@ function ServicosAdminPanel() {
       description: service.description ?? "",
       duration_minutes: String(service.duration_minutes),
       price: String(service.price),
+      staff_ids: service.staff.map((member) => member.id),
     });
+  }
+
+  function toggleStaff(memberId: number) {
+    setForm((current) => ({
+      ...current,
+      staff_ids: current.staff_ids.includes(memberId)
+        ? current.staff_ids.filter((id) => id !== memberId)
+        : [...current.staff_ids, memberId],
+    }));
   }
 
   function cancelEdit() {
@@ -65,6 +83,7 @@ function ServicosAdminPanel() {
       description: form.description || undefined,
       duration_minutes: Number(form.duration_minutes),
       price: Number(form.price),
+      staff_ids: form.staff_ids,
     };
 
     try {
@@ -148,6 +167,30 @@ function ServicosAdminPanel() {
               </div>
             </div>
 
+            {team && team.members.length > 0 && (
+              <div>
+                <Label>Profissionais (opcional)</Label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Se escolher alguém, o cliente precisa selecionar o profissional pra agendar esse serviço.
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {team.members.map((member) => (
+                    <label
+                      key={member.id}
+                      className="flex items-center gap-2 text-sm text-foreground"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.staff_ids.includes(member.id)}
+                        onChange={() => toggleStaff(member.id)}
+                      />
+                      {member.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {editingId ? "Salvar alterações" : "Criar serviço"}
@@ -201,6 +244,11 @@ function ServicosAdminPanel() {
                 <p className="text-sm text-muted-foreground">
                   {service.duration_minutes} min · {formatPrice(service.price)}
                 </p>
+                {service.staff.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Profissionais: {service.staff.map((member) => member.name).join(", ")}
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">

@@ -86,6 +86,7 @@ class TeamController extends Controller
         abort_if($member->business_id !== $business->id, 403);
         abort_if($member->id === $user->id, 422, 'Você não pode remover a si mesmo.');
 
+        $member->assignedServices()->detach();
         $member->tokens()->delete();
         $member->forceFill(['business_id' => null, 'role' => UserRole::Client])->save();
 

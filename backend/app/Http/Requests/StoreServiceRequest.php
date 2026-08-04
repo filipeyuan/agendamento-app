@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Models\Service;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreServiceRequest extends FormRequest
 {
@@ -18,7 +19,7 @@ class StoreServiceRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
@@ -28,6 +29,12 @@ class StoreServiceRequest extends FormRequest
             'duration_minutes' => ['required', 'integer', 'min:5', 'max:600'],
             'price' => ['required', 'numeric', 'min:0'],
             'active' => ['sometimes', 'boolean'],
+            'staff_ids' => ['sometimes', 'array'],
+            'staff_ids.*' => [
+                Rule::exists('users', 'id')->where(
+                    fn ($query) => $query->where('business_id', $this->user()?->business_id)->where('role', 'admin')
+                ),
+            ],
         ];
     }
 
