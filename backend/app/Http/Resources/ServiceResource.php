@@ -23,7 +23,7 @@ class ServiceResource extends JsonResource
             'duration_minutes' => $this->duration_minutes,
             'price' => (float) $this->price,
             'active' => $this->active,
-            'staff' => TeamMemberResource::collection($this->whenLoaded('staff')),
+            'staff' => ServiceStaffResource::collection($this->whenLoaded('staff')),
             'created_at' => $this->created_at,
         ];
     }
