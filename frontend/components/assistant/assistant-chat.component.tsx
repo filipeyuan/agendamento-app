@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { Send, Sparkles, User as UserIcon, X } from "lucide-react";
 
 import { Alert } from "@/components/ui/alert";
@@ -80,6 +80,7 @@ export function AssistantChat({
       const { message, quotaRemaining: remaining } = await sendChatMessage(nextMessages, businessSlug);
       setMessages([...nextMessages, { role: "assistant", content: message }]);
       setQuotaRemaining(remaining);
+      mutate((key) => Array.isArray(key) && key[0] === "my-appointments");
     } catch (err) {
       setError(formatApiError(err));
     } finally {

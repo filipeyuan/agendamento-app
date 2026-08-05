@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessHourController;
 use App\Http\Controllers\Api\BusinessInviteController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -85,6 +86,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/business/banner', [BusinessController::class, 'updateBanner']);
         Route::delete('/business/banner', [BusinessController::class, 'removeBanner']);
         Route::put('/business/accent-color', [BusinessController::class, 'updateAccentColor']);
+
+        Route::get('/faq', [FaqController::class, 'index']);
+        Route::post('/faq', [FaqController::class, 'store']);
+        Route::put('/faq/{faq}', [FaqController::class, 'update']);
+        Route::delete('/faq/{faq}', [FaqController::class, 'destroy']);
 
         Route::get('/team', [TeamController::class, 'index']);
         Route::post('/team/invite', [TeamController::class, 'invite']);

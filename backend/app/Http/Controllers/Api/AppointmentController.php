@@ -12,13 +12,12 @@ use App\Http\Requests\UpdateAppointmentStatusRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Mail\AppointmentCancelledMail;
 use App\Mail\AppointmentConfirmedMail;
-use App\Mail\AppointmentRescheduledMail;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentCancelledNotification;
 use App\Notifications\AppointmentConfirmedNotification;
-use App\Notifications\AppointmentRescheduledNotification;
+use App\Services\AppointmentNotifier;
 use App\Services\BookingService;
 use App\Services\GoogleCalendarService;
 use App\Services\StripeService;
@@ -205,16 +204,14 @@ class AppointmentController extends Controller
     /**
      * Cancela um agendamento a pedido do próprio cliente.
      */
-    public function cancel(Appointment $appointment, BookingService $bookingService): AppointmentResource
+    public function cancel(Appointment $appointment, BookingService $bookingService, AppointmentNotifier $notifier): AppointmentResource
     {
         $this->authorize('manageOwn', $appointment);
 
         $bookingService->cancelByClient($appointment);
 
-        $appointment->refresh()->loadMissing(['service', 'user', 'business', 'staff']);
-
-        $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
-        $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));
+        $appointment->refresh();
+        $notifier->notifyCancelled($appointment);
 
         return AppointmentResource::make($appointment);
     }
@@ -225,15 +222,13 @@ class AppointmentController extends Controller
     public function reschedule(
         RescheduleAppointmentRequest $request,
         Appointment $appointment,
-        BookingService $bookingService
+        BookingService $bookingService,
+        AppointmentNotifier $notifier
     ): AppointmentResource {
         $this->authorize('manageOwn', $appointment);
 
         $rescheduled = $bookingService->reschedule($appointment, Carbon::parse($request->validated('start_at')));
-        $rescheduled->loadMissing(['service', 'user', 'business', 'staff']);
-
-        $this->sendMailSafely($rescheduled, new AppointmentRescheduledMail($rescheduled));
-        $this->notifySafely($rescheduled, new AppointmentRescheduledNotification($rescheduled));
+        $notifier->notifyRescheduled($rescheduled);
 
         return AppointmentResource::make($rescheduled);
     }

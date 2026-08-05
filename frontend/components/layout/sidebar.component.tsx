@@ -10,6 +10,7 @@ import {
   Crown,
   LayoutDashboard,
   LogOut,
+  MessageCircleQuestion,
   Settings2,
   Sparkles,
   Store,
@@ -101,6 +102,9 @@ function SidebarLinks({ onNavigate }: { onNavigate?: () => void }) {
           </SidebarLink>
           <SidebarLink href="/admin/equipe" icon={Users} onNavigate={onNavigate}>
             Equipe
+          </SidebarLink>
+          <SidebarLink href="/admin/faq" icon={MessageCircleQuestion} onNavigate={onNavigate}>
+            Perguntas frequentes
           </SidebarLink>
           <SidebarLink href="/admin/plano" icon={Crown} onNavigate={onNavigate}>
             Plano
