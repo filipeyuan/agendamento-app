@@ -137,6 +137,14 @@ class Business extends Model
     }
 
     /**
+     * @return HasMany<Faq, $this>
+     */
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(Faq::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
