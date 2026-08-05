@@ -33,6 +33,8 @@ docker-compose up
 
 O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount). O `backend/Dockerfile` (sem `.dev`) é o de produção, usado pelo Render. Não roda com `docker-compose`.
 
+O container de produção sobe `php artisan schedule:work` em background junto com `php artisan serve`, então o agendador do Laravel (usado hoje só pro lembrete automático de agendamento, `appointments:send-reminders`, a cada 15 minutos) roda sozinho, sem precisar configurar um Cron Job separado no Render.
+
 ## Qualidade de código
 
 ```bash
@@ -55,6 +57,7 @@ Cobertura de testes: autenticação (registro como cliente ou como admin dono de
 | `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário padrão usado só na primeira vez que o seeder cria o horário de atendimento (depois disso, o horário fica no banco e é editado por `/api/admin/business-hours`) |
 | `BOOKING_CLIENT_ACTION_WINDOW_HOURS` | Quantas horas de antecedência o cliente precisa ter pra cancelar/remarcar sozinho (default `2`) |
 | `BOOKING_MAX_RECURRING_OCCURRENCES` | Máximo de ocorrências semanais num agendamento recorrente (default `12`) |
+| `BOOKING_REMINDER_HOURS_BEFORE` | Quantas horas antes do agendamento o lembrete automático por e-mail é enviado (default `24`) |
 | `GEMINI_API_KEY` | Chave da API do Gemini (gratuita em [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)), usada pelo assistente de agendamento via IA. Sem ela, o assistente responde avisando que ainda não foi configurado |
 | `GEMINI_MODEL` | Modelo do Gemini usado pelo assistente (default `gemini-flash-lite-latest`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Credenciais OAuth criadas no Google Cloud Console (Credentials > OAuth Client ID, tipo "Web application"), usadas pra sincronizar com o Google Calendar do admin |

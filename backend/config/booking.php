@@ -45,4 +45,15 @@ return [
 
     'max_recurring_occurrences' => (int) env('BOOKING_MAX_RECURRING_OCCURRENCES', 12),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Lembrete automático
+    |--------------------------------------------------------------------------
+    |
+    | Quantas horas antes do agendamento o lembrete por e-mail é enviado.
+    |
+    */
+
+    'reminder_hours_before' => (int) env('BOOKING_REMINDER_HOURS_BEFORE', 24),
+
 ];
