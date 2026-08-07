@@ -19,6 +19,8 @@ use Throwable;
 
 class AppointmentNotifier
 {
+    public function __construct(private WhatsappService $whatsapp) {}
+
     public function notifyCancelled(Appointment $appointment): void
     {
         $appointment->loadMissing(['service', 'user', 'business', 'staff']);
@@ -41,6 +43,7 @@ class AppointmentNotifier
 
         $this->sendMailSafely($appointment, new AppointmentReminderMail($appointment));
         $this->notifySafely($appointment, new AppointmentReminderNotification($appointment));
+        $this->whatsapp->sendAppointmentReminder($appointment);
     }
 
     private function sendMailSafely(Appointment $appointment, Mailable $mailable): void

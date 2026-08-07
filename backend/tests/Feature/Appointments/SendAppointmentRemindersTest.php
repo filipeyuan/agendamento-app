@@ -7,7 +7,9 @@ namespace Tests\Feature\Appointments;
 use App\Enums\AppointmentStatus;
 use App\Mail\AppointmentReminderMail;
 use App\Models\Appointment;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -31,6 +33,30 @@ class SendAppointmentRemindersTest extends TestCase
 
         Mail::assertSent(AppointmentReminderMail::class);
         $this->assertNotNull($appointment->fresh()->reminder_sent_at);
+    }
+
+    #[Test]
+    public function it_also_sends_a_whatsapp_reminder_when_twilio_is_configured(): void
+    {
+        Mail::fake();
+        config([
+            'services.twilio.account_sid' => 'AC_test',
+            'services.twilio.auth_token' => 'token_test',
+            'services.twilio.whatsapp_from' => '+14155238886',
+        ]);
+        Http::fake(['api.twilio.com/*' => Http::response(['sid' => 'SM123'])]);
+
+        $client = User::factory()->create(['phone' => '11987654321']);
+        Appointment::factory()->create([
+            'user_id' => $client->id,
+            'status' => AppointmentStatus::Confirmed,
+            'start_at' => now()->addHours(10),
+            'end_at' => now()->addHours(10)->addMinutes(30),
+        ]);
+
+        $this->artisan('appointments:send-reminders')->assertSuccessful();
+
+        Http::assertSent(fn ($request) => $request['To'] === 'whatsapp:+5511987654321');
     }
 
     #[Test]
