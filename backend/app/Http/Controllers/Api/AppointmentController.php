@@ -10,13 +10,9 @@ use App\Http\Requests\RescheduleAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentStatusRequest;
 use App\Http\Resources\AppointmentResource;
-use App\Mail\AppointmentCancelledMail;
-use App\Mail\AppointmentConfirmedMail;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Models\User;
-use App\Notifications\AppointmentCancelledNotification;
-use App\Notifications\AppointmentConfirmedNotification;
 use App\Services\AppointmentNotifier;
 use App\Services\BookingService;
 use App\Services\GoogleCalendarService;
@@ -26,10 +22,6 @@ use Dedoc\Scramble\Attributes\Response as DocumentedResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Mail\Mailable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -240,7 +232,8 @@ class AppointmentController extends Controller
         UpdateAppointmentStatusRequest $request,
         Appointment $appointment,
         GoogleCalendarService $googleCalendar,
-        StripeService $stripe
+        StripeService $stripe,
+        AppointmentNotifier $notifier
     ): AppointmentResource {
         $this->authorize('updateStatus', $appointment);
 
@@ -263,8 +256,7 @@ class AppointmentController extends Controller
                 ]);
             }
 
-            $this->sendMailSafely($appointment, new AppointmentConfirmedMail($appointment));
-            $this->notifySafely($appointment, new AppointmentConfirmedNotification($appointment));
+            $notifier->notifyConfirmed($appointment);
         }
 
         if ($newStatus === AppointmentStatus::Cancelled) {
@@ -275,36 +267,9 @@ class AppointmentController extends Controller
 
             $stripe->refund($appointment);
 
-            $this->sendMailSafely($appointment, new AppointmentCancelledMail($appointment));
-            $this->notifySafely($appointment, new AppointmentCancelledNotification($appointment));
+            $notifier->notifyCancelled($appointment);
         }
 
         return AppointmentResource::make($appointment);
-    }
-
-    private function sendMailSafely(Appointment $appointment, Mailable $mailable): void
-    {
-        try {
-            Mail::to($appointment->user->email)->send($mailable);
-        } catch (Throwable $e) {
-            Log::warning('Falha ao enviar e-mail de status de agendamento.', [
-                'appointment_id' => $appointment->id,
-                'mailable' => $mailable::class,
-                'message' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    private function notifySafely(Appointment $appointment, Notification $notification): void
-    {
-        try {
-            $appointment->user->notify($notification);
-        } catch (Throwable $e) {
-            Log::warning('Falha ao criar notificação de status de agendamento.', [
-                'appointment_id' => $appointment->id,
-                'notification' => $notification::class,
-                'message' => $e->getMessage(),
-            ]);
-        }
     }
 }

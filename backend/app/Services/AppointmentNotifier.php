@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Mail\AppointmentCancelledMail;
+use App\Mail\AppointmentConfirmedMail;
 use App\Mail\AppointmentReminderMail;
 use App\Mail\AppointmentRescheduledMail;
 use App\Models\Appointment;
 use App\Notifications\AppointmentCancelledNotification;
+use App\Notifications\AppointmentConfirmedNotification;
 use App\Notifications\AppointmentReminderNotification;
 use App\Notifications\AppointmentRescheduledNotification;
 use Illuminate\Mail\Mailable;
@@ -20,6 +22,14 @@ use Throwable;
 class AppointmentNotifier
 {
     public function __construct(private WhatsappService $whatsapp) {}
+
+    public function notifyConfirmed(Appointment $appointment): void
+    {
+        $appointment->loadMissing(['service', 'user', 'business', 'staff']);
+
+        $this->sendMailSafely($appointment, new AppointmentConfirmedMail($appointment));
+        $this->notifySafely($appointment, new AppointmentConfirmedNotification($appointment));
+    }
 
     public function notifyCancelled(Appointment $appointment): void
     {
