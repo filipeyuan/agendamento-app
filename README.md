@@ -13,12 +13,15 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Multi-tenant de verdade**: qualquer pessoa se cadastra como negócio e ganha agenda, serviços, horário de atendimento e conexão com o Google Calendar isolados dos demais negócios da plataforma; testes dedicados provam que um negócio não vê nem edita nada de outro
 - **Agendamento sem conflito**: reserva de horário protegida por transação com lock no banco, evita dois clientes marcando o mesmo horário
 - **Horário de atendimento configurável**: horário por dia da semana + bloqueios manuais de data/hora (feriado, viagem, manutenção)
-- **Assistente de agendamento via IA**: chat com Google Gemini que consulta serviços, verifica horários livres e cria o agendamento de verdade via function calling, não é só um chat decorativo
+- **Assistente de agendamento via IA**: chat com Google Gemini que consulta serviços, verifica horários livres, cria, cancela e remarca o agendamento de verdade via function calling, não é só um chat decorativo
+- **Base de conhecimento do assistente (RAG)**: admin cadastra perguntas frequentes do negócio, o assistente busca a resposta certa por similaridade de embedding (Gemini) antes de recusar uma pergunta fora do fluxo de agendamento
+- **Profissional por agendamento**: admin vincula membros da equipe a serviços específicos; quando um serviço tem profissional vinculado, o cliente escolhe quem vai atender e a disponibilidade é calculada por pessoa (um profissional ocupado não trava os outros)
+- **Lembrete automático**: e-mail e WhatsApp (via Twilio, opcional) antes do horário marcado, disparado sozinho por um agendador que roda dentro do próprio container, sem depender de Cron Job externo
 - **Google Calendar**: agendamentos confirmados viram evento real no Google Calendar do admin, e compromissos pessoais já existentes bloqueiam horários automaticamente
 - **Pagamento na hora de agendar**: checkout real via Stripe, o horário só é reservado enquanto o pagamento estiver pendente e é liberado automaticamente se o cliente não pagar; cancelar um agendamento pago reembolsa automaticamente via Stripe
 - **Agendamento recorrente**: repetição semanal (até 12 vezes), pago numa única sessão de checkout; se qualquer ocorrência conflitar, nenhuma é criada
 - **Cliente remarca/cancela sozinho**: até 2h antes do horário, sem precisar falar com o admin
-- **Notificações**: e-mail (pagamento confirmado, agendamento confirmado/cancelado/remarcado) via Resend, mais um sino de notificações in-app com contagem de não lidas
+- **Notificações**: e-mail (pagamento confirmado, agendamento confirmado/cancelado/remarcado/lembrete) via Resend, mais um sino de notificações in-app com contagem de não lidas
 - **Dashboard de analytics**: volume de agendamentos por dia, distribuição por status, receita e serviços mais procurados
 - **Painel admin completo**: CRUD de serviços, gestão de agendamentos com calendário visual (FullCalendar), confirmar/cancelar/concluir
 - **Gestão de conta**: editar dados e trocar senha, desativar a conta (reversível, reativa no próximo login) ou excluir permanentemente, com bloqueio automático se houver agendamento futuro pendente
@@ -32,8 +35,8 @@ Projeto construído em fases, cada uma terminando com algo funcionando e implant
 - **Backend:** Laravel + Sanctum, API REST com autenticação via token ([`/backend`](./backend))
 - **Banco:** SQLite em desenvolvimento, PostgreSQL (Neon) em produção
 - **IA:** Google Gemini (function calling)
-- **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional)
-- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 136 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
+- **Integrações:** Google Calendar API (OAuth2), Stripe (pagamento), Resend (e-mail transacional), Twilio (lembrete via WhatsApp, opcional)
+- **Qualidade:** PHPStan (Larastan, nível 8) + Laravel Pint (PSR-12), 233 testes PHPUnit + 17 testes Jest/RTL, CI no GitHub Actions a cada push
 
 ## Deploy
 
@@ -63,5 +66,6 @@ Sobe backend (`:8000`), frontend (`:3000`) e PostgreSQL, com hot-reload nos dois
 - [x] **Fase 9**: Multi-tenant. Reembolso automático via Stripe ao cancelar um agendamento pago, modelo de dados isolado por negócio, cadastro self-service de negócio, navegação multi-negócio pro cliente e testes dedicados de isolamento entre negócios
 - [x] **Fase 10**: Redesign de UI e gestão de conta. Sidebar nova pro app logado, navbar e home repaginados fugindo do padrão genérico de template, menu de conta, e autoatendimento completo de perfil (editar dados, trocar senha, desativar ou excluir a conta)
 - [x] **Fase 11**: Monetização. Planos Free e Pro com assinatura recorrente via Stripe Billing, limites reais aplicados no backend (não só na tela), portal de cobrança pra gerenciar/cancelar a assinatura, e prompt de upgrade contextual pro admin no plano Free
+- [x] **Fase 12**: Profissional por agendamento, assistente de IA agentic (cancela/remarca pelo chat) com base de conhecimento própria (RAG), e lembrete automático de agendamento por e-mail e WhatsApp
 
 Cada subpasta tem seu próprio README com instruções de setup local (sem Docker, se preferir).
