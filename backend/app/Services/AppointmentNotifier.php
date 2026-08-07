@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Mail\AppointmentCancelledMail;
+use App\Mail\AppointmentReminderMail;
 use App\Mail\AppointmentRescheduledMail;
 use App\Models\Appointment;
 use App\Notifications\AppointmentCancelledNotification;
+use App\Notifications\AppointmentReminderNotification;
 use App\Notifications\AppointmentRescheduledNotification;
 use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Notification;
@@ -31,6 +33,14 @@ class AppointmentNotifier
 
         $this->sendMailSafely($appointment, new AppointmentRescheduledMail($appointment));
         $this->notifySafely($appointment, new AppointmentRescheduledNotification($appointment));
+    }
+
+    public function notifyReminder(Appointment $appointment): void
+    {
+        $appointment->loadMissing(['service', 'user', 'business', 'staff']);
+
+        $this->sendMailSafely($appointment, new AppointmentReminderMail($appointment));
+        $this->notifySafely($appointment, new AppointmentReminderNotification($appointment));
     }
 
     private function sendMailSafely(Appointment $appointment, Mailable $mailable): void
