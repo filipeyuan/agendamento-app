@@ -33,7 +33,7 @@ docker-compose up
 
 O `backend/Dockerfile.dev` é só pra isso (dev local, hot-reload via bind mount). O `backend/Dockerfile` (sem `.dev`) é o de produção, usado pelo Render. Não roda com `docker-compose`.
 
-O container de produção sobe `php artisan schedule:work` em background junto com `php artisan serve`, então o agendador do Laravel (usado hoje só pro lembrete automático de agendamento, `appointments:send-reminders`, a cada 15 minutos) roda sozinho, sem precisar configurar um Cron Job separado no Render.
+O container de produção sobe `php artisan schedule:work` em background junto com `php artisan serve`, então o agendador do Laravel (usado hoje só pro lembrete automático de agendamento por e-mail e WhatsApp, `appointments:send-reminders`, a cada 15 minutos) roda sozinho, sem precisar configurar um Cron Job separado no Render.
 
 ## Qualidade de código
 
@@ -43,7 +43,7 @@ O container de produção sobe `php artisan schedule:work` em background junto c
 php artisan test               # suíte de testes (PHPUnit)
 ```
 
-Cobertura de testes: autenticação (registro como cliente ou como admin dono de um negócio novo, login, logout), autoatendimento de conta (editar perfil, trocar senha, desativar com reativação no login seguinte, excluir permanentemente, bloqueio se houver agendamento futuro pendente), CRUD de serviços com as regras de autorização admin/cliente, fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA (incluindo a cota diária de mensagens no plano Free), a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), reembolso automático ao cancelar um agendamento pago, assinatura do plano Pro via Stripe Billing (checkout, portal de cobrança, webhook de ativação/cancelamento da assinatura) e os limites reais do plano Free, notificações in-app, o dashboard de analytics, e um conjunto dedicado de testes provando o isolamento entre negócios (um admin não vê nem edita nada de outro negócio, mesmo com token válido).
+Cobertura de testes: autenticação (registro como cliente ou como admin dono de um negócio novo, login, logout), autoatendimento de conta (editar perfil, trocar senha, desativar com reativação no login seguinte, excluir permanentemente, bloqueio se houver agendamento futuro pendente), CRUD de serviços com as regras de autorização admin/cliente, profissional por agendamento (staff vinculado a serviço, disponibilidade calculada por pessoa), fluxo de agendamento (incluindo o bloqueio de horários conflitantes), atualização de status pelo admin, cliente cancelando/remarcando o próprio agendamento (com a janela mínima de antecedência), agendamento recorrente (inclusive rejeitando a série inteira se uma ocorrência conflitar), horário de atendimento/bloqueios de agenda, o assistente de agendamento via IA (function calling pra listar serviço, checar disponibilidade, criar/cancelar/remarcar agendamento, cota diária de mensagens no plano Free) e sua base de conhecimento com busca por embedding (Gemini), o lembrete automático de agendamento por e-mail e WhatsApp, a sincronização com o Google Calendar (ambos com as respectivas APIs simuladas nos testes), o pagamento via Stripe (checkout, webhook com verificação de assinatura, expiração, cobrança de série recorrente numa única sessão), reembolso automático ao cancelar um agendamento pago, assinatura do plano Pro via Stripe Billing (checkout, portal de cobrança, webhook de ativação/cancelamento da assinatura) e os limites reais do plano Free, notificações in-app, o dashboard de analytics, e um conjunto dedicado de testes provando o isolamento entre negócios (um admin não vê nem edita nada de outro negócio, mesmo com token válido).
 
 ## Variáveis de ambiente
 
@@ -57,7 +57,9 @@ Cobertura de testes: autenticação (registro como cliente ou como admin dono de
 | `BOOKING_HOURS_START` / `BOOKING_HOURS_END` | Horário padrão usado só na primeira vez que o seeder cria o horário de atendimento (depois disso, o horário fica no banco e é editado por `/api/admin/business-hours`) |
 | `BOOKING_CLIENT_ACTION_WINDOW_HOURS` | Quantas horas de antecedência o cliente precisa ter pra cancelar/remarcar sozinho (default `2`) |
 | `BOOKING_MAX_RECURRING_OCCURRENCES` | Máximo de ocorrências semanais num agendamento recorrente (default `12`) |
-| `BOOKING_REMINDER_HOURS_BEFORE` | Quantas horas antes do agendamento o lembrete automático por e-mail é enviado (default `24`) |
+| `BOOKING_REMINDER_HOURS_BEFORE` | Quantas horas antes do agendamento o lembrete automático por e-mail (e WhatsApp, se configurado) é enviado (default `24`) |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | Credenciais da conta Twilio ([console.twilio.com](https://console.twilio.com)), usadas pra mandar o lembrete de agendamento por WhatsApp. Sem elas, o lembrete continua indo só por e-mail |
+| `TWILIO_WHATSAPP_FROM` | Número do WhatsApp Sender da Twilio (ex: `+14155238886` no sandbox de testes), no formato E.164 |
 | `GEMINI_API_KEY` | Chave da API do Gemini (gratuita em [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)), usada pelo assistente de agendamento via IA. Sem ela, o assistente responde avisando que ainda não foi configurado |
 | `GEMINI_MODEL` | Modelo do Gemini usado pelo assistente (default `gemini-flash-lite-latest`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Credenciais OAuth criadas no Google Cloud Console (Credentials > OAuth Client ID, tipo "Web application"), usadas pra sincronizar com o Google Calendar do admin |
@@ -101,21 +103,23 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | GET | `/api/services?business={slug}` | não | Lista os serviços ativos de um negócio (`business` é obrigatório) |
-| GET | `/api/services/{service}/available-slots?date=YYYY-MM-DD` | não | Horários livres de um serviço num dia |
+| GET | `/api/services/{service}/available-slots?date=YYYY-MM-DD&staff_id=` | não | Horários livres de um serviço num dia. Se o serviço tiver profissionais vinculados, `staff_id` é obrigatório e a disponibilidade é calculada só pra aquela pessoa |
 | GET | `/api/admin/services` | admin | Lista todos os serviços (inclusive inativos) |
-| POST | `/api/admin/services` | admin | Cria um serviço |
-| PUT | `/api/admin/services/{service}` | admin | Atualiza um serviço |
+| POST | `/api/admin/services` | admin | Cria um serviço. Aceita `staff_ids` opcional pra vincular profissionais da equipe |
+| PUT | `/api/admin/services/{service}` | admin | Atualiza um serviço (inclusive `staff_ids`) |
 | DELETE | `/api/admin/services/{service}` | admin | Remove um serviço |
+
+Quando um serviço tem profissionais vinculados (`service_user`), o cliente escolhe quem vai atender e a disponibilidade passa a ser calculada por pessoa: um profissional ocupado não bloqueia o horário dos outros. Serviço sem staff vinculado funciona exatamente como antes.
 
 ### Agendamentos
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| POST | `/api/appointments` | sim | Cria um agendamento (409 em caso de conflito). Aceita `recurring_occurrences` opcional pra criar uma série semanal recorrente numa única sessão de pagamento |
+| POST | `/api/appointments` | sim | Cria um agendamento (409 em caso de conflito). Aceita `staff_id` (obrigatório se o serviço tiver profissionais vinculados) e `recurring_occurrences` opcional pra criar uma série semanal recorrente numa única sessão de pagamento |
 | GET | `/api/appointments/mine` | sim | Lista os agendamentos do usuário autenticado |
 | PATCH | `/api/appointments/{appointment}/cancel` | sim (dono) | Cliente cancela o próprio agendamento, até a janela mínima de antecedência (`client_action_window_hours`) |
 | PATCH | `/api/appointments/{appointment}/reschedule` | sim (dono) | Cliente remarca o próprio agendamento pra um novo horário livre |
-| GET | `/api/admin/appointments?date=&from=&to=&status=` | admin | Lista todos os agendamentos, com filtros opcionais (data exata ou intervalo, e status) |
+| GET | `/api/admin/appointments?date=&from=&to=&status=&staff_id=` | admin | Lista todos os agendamentos, com filtros opcionais (data exata ou intervalo, status, profissional) |
 | PATCH | `/api/admin/appointments/{appointment}/status` | admin | Atualiza o status (`confirmed`, `cancelled`, `completed`) |
 
 ### Horário de atendimento e bloqueios
@@ -133,8 +137,12 @@ Rotas autenticadas exigem o header `Authorization: Bearer {token}`. A tabela aba
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | POST | `/api/assistant/chat` | sim | Envia `business` (slug) + o histórico da conversa e recebe a resposta do assistente |
+| GET | `/api/admin/faq` | admin | Lista as perguntas frequentes do negócio |
+| POST | `/api/admin/faq` | admin | Cria uma pergunta frequente (`question` + `answer`); o embedding é computado na hora via Gemini |
+| PUT | `/api/admin/faq/{faq}` | admin | Atualiza uma pergunta frequente e recomputa o embedding |
+| DELETE | `/api/admin/faq/{faq}` | admin | Remove uma pergunta frequente |
 
-O assistente usa a API do Gemini com function calling: ele mesmo decide quando consultar os serviços ativos, checar horários livres e criar o agendamento (`App\Services\AssistantService`), sempre a partir de dados reais do banco (só do negócio informado), nunca inventados.
+O assistente usa a API do Gemini com function calling (`App\Services\AssistantService`): ele mesmo decide quando consultar os serviços ativos, checar horários livres, criar/cancelar/remarcar um agendamento (sempre confirmando com o cliente antes de agir), ou buscar na base de conhecimento do negócio (`App\Services\EmbeddingService`, embedding + similaridade de cosseno contra as perguntas frequentes cadastradas) quando a pergunta foge do fluxo de agendamento. Sem uma pergunta frequente relevante cadastrada, ele avisa que precisa ser confirmado direto com o estabelecimento em vez de inventar uma resposta. Tudo sempre a partir de dados reais do banco (só do negócio informado), nunca inventados.
 
 ### Google Calendar
 
@@ -174,7 +182,7 @@ O plano fica em `businesses.plan` (`free` por padrão) e é atualizado só via w
 | PATCH | `/api/notifications/{notification}/read` | sim | Marca uma notificação como lida |
 | POST | `/api/notifications/mark-all-read` | sim | Marca todas as notificações do usuário como lidas |
 
-Usa o sistema nativo de notifications do Laravel (canal `database`), disparada pro cliente quando o pagamento é confirmado, o agendamento é confirmado ou cancelado (os mesmos eventos que disparam e-mail).
+Usa o sistema nativo de notifications do Laravel (canal `database`), disparada pro cliente quando o pagamento é confirmado, o agendamento é confirmado, cancelado, remarcado (inclusive via chat do assistente) ou quando o lembrete automático é enviado (os mesmos eventos que disparam e-mail e, no caso do lembrete, WhatsApp).
 
 ### Dashboard de analytics
 
